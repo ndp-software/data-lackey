@@ -24,19 +24,19 @@
   },
   "homepage": "https://github.com/Verba/data-lackey#readme",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
-    "enzyme": "^3.3.0",
-    "enzyme-adapter-react-16": "^1.1.1",
-    "hoist-non-react-statics": "^2.5.5",
-    "jest": "^23.3.0",
-    "prop-types": "^15.6.2",
-    "react": "^16.4.1",
-    "react-dom": "^16.4.1"
+    "babel-cli": "*",
+    "babel-core": "*",
+    "babel-plugin-transform-object-rest-spread": "*",
+    "babel-polyfill": "*",
+    "babel-preset-env": "*",
+    "babel-preset-react": "*",
+    "enzyme": "*",
+    "enzyme-adapter-react-16": "*",
+    "hoist-non-react-statics": "*",
+    "jest": "*",
+    "prop-types": "*",
+    "react": "*",
+    "react-dom": "*"
   },
   "jest": {
     "roots": ["./src"],
@@ -50,6 +50,6 @@
     }
   },
   "dependencies": {
-    "url-pattern": "^1.0.3"
+    "url-pattern": "^1"
   }
 }
