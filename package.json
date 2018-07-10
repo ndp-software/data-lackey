@@ -1,0 +1,55 @@
+{
+  "name": "data-lackey",
+  "version": "1.0.0",
+  "description": "orchestrates loading of your data",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "build": "babel src --out-dir dist",
+    "prepublish": "yarn build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Verba/data-lackey.git"
+  },
+  "keywords": [
+    "fetch",
+    "REST",
+    "redux"
+  ],
+  "author": "Andrew J. Peterson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Verba/data-lackey/issues"
+  },
+  "homepage": "https://github.com/Verba/data-lackey#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
+    "hoist-non-react-statics": "^2.5.5",
+    "jest": "^23.3.0",
+    "prop-types": "^15.6.2",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1"
+  },
+  "jest": {
+    "roots": ["./src"],
+    "setupFiles": [
+      "./src/jest/enzyme.js"
+    ],
+    "coveragePathIgnorePatterns": ["./src/jest"],
+    "restoreMocks": true,
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    }
+  },
+  "dependencies": {
+    "url-pattern": "^1.0.3"
+  }
+}
