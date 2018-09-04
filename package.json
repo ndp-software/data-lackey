@@ -19,6 +19,10 @@
   ],
   "author": "Andrew J. Peterson",
   "license": "MIT",
+  "engines": {
+    "npm": "^5",
+    "node": "^8"
+  },
   "bugs": {
     "url": "https://github.com/Verba/data-lackey/issues"
   },
