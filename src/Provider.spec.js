@@ -3,6 +3,7 @@
 /* eslint-disable no-console */
 import React     from 'react'
 import PropTypes from 'prop-types'
+// eslint-disable-next-line no-unused-vars
 import Provider  from './Provider'
 import {
   shallow,
