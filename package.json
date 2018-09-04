@@ -56,11 +56,15 @@
     "react-dom": "*"
   },
   "jest": {
-    "roots": ["./src"],
+    "roots": [
+      "./src"
+    ],
     "setupFiles": [
       "./src/jest/enzyme.js"
     ],
-    "coveragePathIgnorePatterns": ["./src/jest"],
+    "coveragePathIgnorePatterns": [
+      "./src/jest"
+    ],
     "restoreMocks": true,
     "transform": {
       "^.+\\.jsx?$": "babel-jest"
