@@ -18,6 +18,8 @@ With Data Lackey:
 
 ## Installation & Basic Usage
 
+[![CircleCI](https://circleci.com/gh/Verba/data-lackey/tree/master.svg?style=svg&circle-token=e5e3ede09f04662995e99094b75e6a0c84914c1a)](https://circleci.com/gh/Verba/data-lackey/tree/master)
+
 ```bash
 shell> yarn add data-lackey
 ```
