@@ -183,6 +183,10 @@ export class DataLackey {
     return this.JOBS[jobURI].promise
   }
 
+  reset () {
+    Object.keys(this.JOBS).forEach(k => this.unload(k))
+  }
+
 
 }
 

@@ -555,5 +555,66 @@ describe('DataLackey', function () {
     })
   })
 
+  describe('#reset', () => {
+
+    const URI = 'dl:test'
+    let subject, mockLog,
+          loaderFn, unloadFn
+
+    beforeEach(() => {
+      mockLog = jest.fn()
+      subject = new DataLackey({ console: { log: mockLog } })
+
+      loaderFn = jest.fn(() => Promise.resolve('foo'))
+      unloadFn = jest.fn()
+      subject.rule('dl:test', {
+        loader: loaderFn,
+        unload: unloadFn,
+      })
+      expect(subject.job(URI)).toBe()
+    })
+
+    it('does nothing if nothing loaded', () => {
+      expect(subject.JOBS).toEqual({})
+      expect(subject.loaded(URI)).toBe(false)
+
+      subject.reset()
+
+      expect(subject.loaded(URI)).toBe(false)
+      expect(subject.JOBS).toEqual({})
+    })
+
+    it('marks previously loaded jobs as unloaded', async () => {
+      await subject.load(URI)
+      expect(subject.loaded(URI)).toBe(true)
+      expect(subject.JOBS).not.toEqual({})
+
+      subject.reset()
+
+      expect(subject.loaded(URI)).toBe(false)
+      expect(subject.JOBS).toEqual({})
+    })
+
+    it('calls `unload` (this behavior subject to change)', async () => {
+      expect(unloadFn).not.toHaveBeenCalled()
+      await subject.load(URI)
+
+      subject.reset()
+
+      expect(unloadFn).toHaveBeenCalled()
+    })
+
+    it('handles in-progress jobs gracefully', async () => {
+      const promise =  subject.load(URI)
+      expect(subject.loading(URI)).toBe(true)
+
+      subject.reset()
+
+      await promise
+      expect(subject.loading(URI)).toBe(false)
+    })
+  })
+
+
 })
 

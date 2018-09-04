@@ -58,7 +58,7 @@ export function loadData (...resourceCreators) {
         this.setState({ resources: nextResources, }, () => {
           promise
             .then(() => this.forceUpdate())
-            .catch(err => this.dataLackey.err('Failed to load URI ', err))
+            .catch(err => this.dataLackey.console.error('Failed to load URI ', err))
 
         })
       }

@@ -1,4 +1,5 @@
 /* eslint-env jest */
+// eslint-disable-next-line no-unused-vars
 import React from 'react'
 import { mount } from 'enzyme'
 
@@ -16,6 +17,7 @@ function sampleComponent (props) {
 describe('HOC', function () {
 
   let dataLackey,
+// eslint-disable-next-line no-unused-vars
       WrappedComponent,
       recordLoad,
       propTracker
@@ -37,10 +39,6 @@ describe('HOC', function () {
   })
 
   describe('with static resource', () => {
-    beforeEach(() => {
-      WrappedComponent = loadData('dl:items')(sampleComponent)
-    })
-
     it('renders immediately if data is already loaded', async () => {
       await dataLackey.load('dl:items')
       expect(dataLackey.loaded('dl:items')).toBe(true)
