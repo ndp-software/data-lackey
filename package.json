@@ -3,21 +3,23 @@
   "version": "1.0.0",
   "description": "orchestrates loading of your data",
   "main": "dist/index.js",
+  "files": "dist/index.js",
   "scripts": {
     "test": "jest --coverage && eslint src",
     "build": "babel src --out-dir dist",
     "prepublish": "yarn build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Verba/data-lackey.git"
-  },
+  "repository": "github:Verba/data-lackey.git",
   "keywords": [
     "fetch",
     "REST",
     "redux"
   ],
-  "author": "Andrew J. Peterson",
+  "author": {
+    "name": "Andrew J. Peterson",
+    "email": "andy@ndpsoftware.com",
+    "url": "http://ndpsoftware.com/"
+  },
   "license": "MIT",
   "engines": {
     "npm": "^5",
@@ -65,6 +67,14 @@
     "coveragePathIgnorePatterns": [
       "./src/jest"
     ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    },
     "restoreMocks": true,
     "transform": {
       "^.+\\.jsx?$": "babel-jest"
