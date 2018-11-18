@@ -1,10 +1,10 @@
 {
   "name": "data-lackey",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "orchestrates loading of your data",
   "main": "dist/index.js",
   "files": [
-    "dist/**/*.js"
+    "dist/*.js"
   ],
   "scripts": {
     "test": "jest --coverage",
