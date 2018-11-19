@@ -42,7 +42,8 @@ export function loadData (...resourceCreators) {
         // Allow overriding of the "dataLackey" source.
         this.dataLackey = this.props.dataLackey || (context && context.dataLackey)
 
-        if (!this.dataLackey) throw 'No dataLackey found. Unable to load specified data.'
+        // eslint-disable-next-line no-console
+        if (!this.dataLackey) console.error('No dataLackey found. Unable to load specified data.')
 
         this.state = {
           autoUnload:     this.props.autoUnload || options.autoUnload,

@@ -1,6 +1,6 @@
 /* eslint-env jest */
 import { DataLackey }          from './core'
-import createExampleDataLackey from './example'
+import createLackeyWithLoaders from './example'
 
 describe('DataLackey', () => {
 
@@ -69,7 +69,7 @@ describe('DataLackey', () => {
                                                       details: 'some detail',
                                                     }).then(data => dispatch(loadAction(data))))
 
-      subject = createExampleDataLackey({ rootLoader, itemLoader, detailsLoader })
+      subject = createLackeyWithLoaders({ rootLoader, itemLoader, detailsLoader })
 
     })
 

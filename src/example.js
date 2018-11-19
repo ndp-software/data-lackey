@@ -8,7 +8,7 @@ Example of how you would specify data dependencies.
 
 import { DataLackey } from './core'
 
-export default function configureDataLackey (loaders) {
+export default function createLackeyWithLoaders (loaders) {
 
   // Step 1: create the lackey, with options
   const dataLackey = new DataLackey({

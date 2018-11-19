@@ -1,10 +1,14 @@
 /* eslint-env jest */
 // eslint-disable-next-line no-unused-vars
 import React from 'react'
-import { mount } from 'enzyme'
+import {
+  mount,
+  shallow,
+} from 'enzyme'
 
 import { loadData } from './HOC'
-import configureDataLackey from './example.js'
+import createLackeyWithLoaders from './example.js'
+
 
 function sampleComponent (props) {
   return <div>
@@ -16,8 +20,8 @@ function sampleComponent (props) {
 
 describe('HOC', function () {
 
-  let dataLackey,
-// eslint-disable-next-line no-unused-vars
+  const FAIL = 999
+  let lackey,
       WrappedComponent,
       recordLoad,
       propTracker
@@ -27,10 +31,10 @@ describe('HOC', function () {
     recordLoad  = jest.fn(x => propTracker = `${propTracker} ${x}`)
 
     const rootLoader    = jest.fn(() => Promise.resolve('items loaded').then(recordLoad))
-    const itemLoader    = jest.fn(id => Promise.resolve(`item ${id} loaded`).then(recordLoad))
+    const itemLoader    = jest.fn(id => (id == FAIL) ? Promise.reject('failure') : Promise.resolve(`item ${id} loaded`).then(recordLoad))
     const detailsLoader = jest.fn(id => Promise.resolve(`detail ${id} loaded`).then(recordLoad))
 
-    dataLackey       = configureDataLackey({
+    lackey       = createLackeyWithLoaders({
                                              rootLoader,
                                              itemLoader,
                                              detailsLoader,
@@ -38,13 +42,26 @@ describe('HOC', function () {
     WrappedComponent = loadData('dl:items')(sampleComponent)
   })
 
+  describe('when no data lackey', () => {
+    it('logs a descriptive message', () => {
+      jest.spyOn(console, 'error').mockImplementation(() => null)
+
+      try {
+        shallow(<WrappedComponent who='dawg'/>)
+      } catch (e) {
+        expect(e).toBeInstanceOf(TypeError)
+      }
+      expect(console.error).toHaveBeenCalledWith('No dataLackey found. Unable to load specified data.')
+    })
+  })
+
   describe('with static resource', () => {
     it('renders immediately if data is already loaded', async () => {
-      await dataLackey.load('dl:items')
-      expect(dataLackey.loaded('dl:items')).toBe(true)
+      await lackey.load('dl:items')
+      expect(lackey.loaded('dl:items')).toBe(true)
 
-      const view = mount(<WrappedComponent who='dawg' dataLackey={dataLackey}>{propTracker}</WrappedComponent>)
-      expect(dataLackey.loaded('dl:items')).toBe(true)
+      const view = mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
+      expect(lackey.loaded('dl:items')).toBe(true)
       expect(view.text()).toContain('Hello, dawg')
       expect(view.text()).toContain('items loaded')
       expect(view.text()).toContain('[not isLoading]')
@@ -53,24 +70,38 @@ describe('HOC', function () {
     })
 
     it('loads when component is mounted', async () => {
-      const view = mount(<WrappedComponent who='dawg' dataLackey={dataLackey}>{propTracker}</WrappedComponent>)
+      const view = mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
       expect(view.text()).toContain('Hello, dawg')
-      expect(dataLackey.loading('dl:items')).toBe(true)
+      expect(lackey.loading('dl:items')).toBe(true)
       expect(view.text()).toContain('[isLoading]')
       expect(view.text()).toContain('[not isLoaded]')
       expect(view.text()).toContain('[not loadFailed]')
-      await dataLackey.load('dl:items')
+      await lackey.load('dl:items')
     })
 
     it('dispatches values on resolution', async () => {
-      mount(<WrappedComponent who='dawg' dataLackey={dataLackey}>{propTracker}</WrappedComponent>)
+      mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
       expect(recordLoad).not.toHaveBeenCalled()
 
-      await dataLackey.load('dl:items')
+      await lackey.load('dl:items')
 
       expect(recordLoad).toHaveBeenCalledWith('items loaded')
+    })
+
+    it('logs when loading fails', async () => {
+      WrappedComponent = loadData(`dl:item/${FAIL}`)(sampleComponent)
+
+      mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
+      expect(recordLoad).not.toHaveBeenCalled()
+      jest.spyOn(lackey.console, 'error')
+
+      await lackey.load(`dl:item/${FAIL}`)
+
+      expect(lackey.console.error).toHaveBeenCalledWith('failed dl:item/999 Error=failure')
+      expect(recordLoad).toHaveBeenCalledWith('items loaded')
+      expect(recordLoad).not.toHaveBeenCalledWith(`item ${FAIL} loaded`)
     })
   })
 
@@ -80,14 +111,14 @@ describe('HOC', function () {
     })
 
     it('loads when component is mounted', async done => {
-      const view = mount(<WrappedComponent who='dawg' dataLackey={dataLackey}>{propTracker}</WrappedComponent>)
+      const view = mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
       expect(view.text()).toContain('Hello, dawg')
       expect(view.text()).toContain('[isLoading]')
       expect(view.text()).toContain('[not isLoaded]')
       expect(view.text()).toContain('[not loadFailed]')
 
-      await dataLackey.load('dl:items')
+      await lackey.load('dl:items')
 
       process.nextTick(async () => {
         expect(recordLoad).toHaveBeenCalledWith('items loaded')
@@ -108,26 +139,26 @@ describe('HOC', function () {
 
     it('loads resource passed as property', async done => {
       const view = mount(<WrappedComponent who='dawg'
-                                           dataLackey={dataLackey}>{propTracker}</WrappedComponent>)
+                                           dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
       expect(view.text()).toContain('Hello, dawg')
       expect(view.text()).toContain('[isLoading]')
       expect(view.text()).toContain('[not isLoaded]')
       expect(view.text()).toContain('[not loadFailed]')
 
-      expect(dataLackey.loading('dl:item/1')).toBe(false) // blocked by dl:items
-      await dataLackey.load('dl:items')
-      expect(dataLackey.loading('dl:item/1')).toBe(true)
+      expect(lackey.loading('dl:item/1')).toBe(false) // blocked by dl:items
+      await lackey.load('dl:items')
+      expect(lackey.loading('dl:item/1')).toBe(true)
 
-      expect(dataLackey.loading('dl:item/1/details')).toBe(true)
-      await dataLackey.load('dl:item/1')
-      expect(dataLackey.loading('dl:item/1/details')).toBe(true)
+      expect(lackey.loading('dl:item/1/details')).toBe(true)
+      await lackey.load('dl:item/1')
+      expect(lackey.loading('dl:item/1/details')).toBe(true)
 
       expect(view.text()).toContain('[isLoading]')
 
-      expect(dataLackey.loading('dl:item/1/details')).toBe(true)
-      await dataLackey.load('dl:item/1/details') // resolution will trigger render
-      expect(dataLackey.loading('dl:item/1/details')).toBe(false)
+      expect(lackey.loading('dl:item/1/details')).toBe(true)
+      await lackey.load('dl:item/1/details') // resolution will trigger render
+      expect(lackey.loading('dl:item/1/details')).toBe(false)
 
       expect(view.text()).toContain('[isLoading]')
       expect(view.text()).toContain('[not isLoaded]')
