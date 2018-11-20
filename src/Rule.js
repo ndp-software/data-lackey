@@ -44,7 +44,7 @@ export default class Rule {
   /**
    * Returns a promise by passing the matcher params
    * to the `loader` function. This is "raw" because it
-   * does not factor in any of the depedencies of this rule.
+   * does not factor in any of the dependencies of this rule.
    * @param params values return from `#params` function
    */
   rawLoaderPromise (params) {
