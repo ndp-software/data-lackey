@@ -8,6 +8,7 @@ import {
 
 import { loadData } from './HOC'
 import createLackeyWithLoaders from './example.js'
+// global console
 
 
 function sampleComponent (props) {
@@ -22,6 +23,7 @@ describe('HOC', function () {
 
   const FAIL = 999
   let lackey,
+// eslint-disable-next-line no-unused-vars
       WrappedComponent,
       recordLoad,
       propTracker
