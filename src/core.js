@@ -159,7 +159,8 @@ export class DataLackey {
   jobForURI (jobURI, loadOptions) {
     if (Array.isArray(jobURI)) return jobURI.filter(u => u).map(u => this.jobForURI(u))
 
-    this.console.log(`${this.JOBS[jobURI] && this.JOBS[jobURI].loaded ? '  cache hit for' : 'load'} "${jobURI}"`)
+    // If a URL resolves to "undefined" or "null", it was likely a mistake. Highlight it in the console.
+    this.console.log[(jobURI.includes('undefined') || jobURI.includes('null')) ? 'error': 'log'](`${this.JOBS[jobURI] && this.JOBS[jobURI].loaded ? '  cache hit for' : 'load'} "${jobURI}"`)
 
     if (this.JOBS[jobURI] === this.CIRCULAR_REF) throw `Circular reference for URI "${jobURI}"`
 
