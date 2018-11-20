@@ -7,7 +7,7 @@
     "dist/*.js"
   ],
   "scripts": {
-    "test": "jest --coverage",
+    "test": "./node_modules/.bin/jest --coverage",
     "lint": "./node_modules/.bin/eslint ./src/",
     "build": "babel src --ignore '*.spec.js' --out-dir dist",
     "prepublish": "yarn build"
