@@ -4,10 +4,11 @@ import React from 'react'
 import {
   mount,
   shallow,
-} from 'enzyme'
+}            from 'enzyme'
 
-import { loadData } from './HOC'
+import { loadData }            from './HOC'
 import createLackeyWithLoaders from './example.js'
+
 // global console
 
 
@@ -23,10 +24,10 @@ describe('HOC', function () {
 
   const FAIL = 999
   let lackey,
-// eslint-disable-next-line no-unused-vars
-      WrappedComponent,
-      recordLoad,
-      propTracker
+        // eslint-disable-next-line no-unused-vars
+        WrappedComponent,
+        recordLoad,
+        propTracker
 
   beforeEach(() => {
     propTracker = 'Dispatched: '
@@ -36,12 +37,12 @@ describe('HOC', function () {
     const itemLoader    = jest.fn(id => (id == FAIL) ? Promise.reject('failure') : Promise.resolve(`item ${id} loaded`).then(recordLoad))
     const detailsLoader = jest.fn(id => Promise.resolve(`detail ${id} loaded`).then(recordLoad))
 
-    lackey       = createLackeyWithLoaders({
-                                             rootLoader,
-                                             itemLoader,
-                                             detailsLoader,
-                                           })
-    WrappedComponent = loadData('dl:items')(sampleComponent)
+    lackey           = createLackeyWithLoaders({
+                                                 rootLoader,
+                                                 itemLoader,
+                                                 detailsLoader,
+                                               })
+    WrappedComponent = loadData('dl:items', { autoUnload: true })(sampleComponent)
   })
 
   describe('when no data lackey', () => {
@@ -49,7 +50,7 @@ describe('HOC', function () {
       jest.spyOn(console, 'error').mockImplementation(() => null)
 
       try {
-        shallow(<WrappedComponent who='dawg'/>)
+        shallow(<WrappedComponent who='dawg' />)
       } catch (e) {
         expect(e).toBeInstanceOf(TypeError)
       }
@@ -140,8 +141,9 @@ describe('HOC', function () {
     })
 
     it('loads resource passed as property', async done => {
-      const view = mount(<WrappedComponent who='dawg'
-                                           dataLackey={lackey}>{propTracker}</WrappedComponent>)
+      const view = mount(<WrappedComponent
+        who='dawg'
+        dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
       expect(view.text()).toContain('Hello, dawg')
       expect(view.text()).toContain('[isLoading]')
@@ -174,5 +176,38 @@ describe('HOC', function () {
 
     })
 
+  })
+
+  describe('resources changing', () => {
+
+    it('will load new resource', () => {
+      jest.spyOn(lackey, 'load')
+      const c = shallow(<WrappedComponent dataLackey={lackey} />)
+      expect(lackey.load).toBeCalledWith('dl:items', {})
+
+      c.instance().setResources(['dl:item/1'])
+
+      expect(lackey.load).toBeCalledWith('dl:items', {})
+      expect(lackey.load).toBeCalledWith('dl:item/1', {})
+    })
+
+    it('will unload old resource', async () => {
+      const c = shallow(<WrappedComponent dataLackey={lackey} />)
+      await c.instance().setResources(['dl:item/1'])
+      jest.spyOn(lackey, 'unload')
+
+      await c.instance().setResources(['dl:item/2'])
+
+      expect(lackey.unload).toBeCalledWith('dl:item/1')
+    })
+
+    it('will load with reloadInterval if `reloadInterval` specified as a prop', async () => {
+      const c = shallow(<WrappedComponent dataLackey={lackey} reloadInterval={70} />)
+      jest.spyOn(lackey, 'load')
+
+      await c.instance().setResources(['dl:item/1'])
+
+      expect(lackey.load).toHaveBeenCalledWith('dl:item/1', { reloadInterval: 70 })
+    })
   })
 })
