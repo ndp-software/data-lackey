@@ -96,15 +96,14 @@ describe('HOC', function () {
     it('logs when loading fails', async () => {
       WrappedComponent = loadData(`dl:item/${FAIL}`)(sampleComponent)
 
-      mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
-      expect(recordLoad).not.toHaveBeenCalled()
       jest.spyOn(lackey.console, 'error')
 
-      await lackey.load(`dl:item/${FAIL}`)
+      mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
+
+
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
       expect(lackey.console.error).toHaveBeenCalledWith('failed dl:item/999 Error=failure')
-      expect(recordLoad).toHaveBeenCalledWith('items loaded')
-      expect(recordLoad).not.toHaveBeenCalledWith(`item ${FAIL} loaded`)
     })
   })
 
@@ -208,6 +207,30 @@ describe('HOC', function () {
       await c.instance().setResources(['dl:item/1'])
 
       expect(lackey.load).toHaveBeenCalledWith('dl:item/1', { reloadInterval: 70 })
+    })
+  })
+
+  describe('componentWillUnmount', () => {
+    it('will unload resources', () => {
+      const c = shallow(<WrappedComponent dataLackey={lackey} />)
+
+      jest.spyOn(c.instance(), 'setResources')
+      c.instance().componentWillUnmount()
+
+      expect(c.instance().setResources).toHaveBeenCalledWith([], c.instance().props)
+    })
+  })
+
+  describe('componentWillReceiveProps', () => {
+    it('will unload resources', () => {
+      const c = shallow(<WrappedComponent dataLackey={lackey} />)
+      jest.spyOn(c.instance(), 'setResources')
+
+      c.instance().componentWillReceiveProps({ foo: 'bar' })
+
+      expect(c.instance().setResources).toHaveBeenCalledWith(['dl:items'], { foo: 'bar' })
+
+      c.instance().componentWillReceiveProps({ foo: 'bar' })
     })
   })
 })

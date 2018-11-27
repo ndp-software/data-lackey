@@ -1,7 +1,10 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React               from 'react'
+import PropTypes           from 'prop-types'
 import hoistNonReactStatic from 'hoist-non-react-statics'
-import { flatMap } from './util'
+import {
+  flatMap,
+  arraysEqual,
+}                          from './util'
 
 /* global Set */
 if (!Set.prototype.difference)
@@ -57,16 +60,16 @@ export function loadData (...resourceCreators) {
               promise       = this.loadResources(nextResources)
 
         this.setState({ resources: nextResources, }, () => {
+          // eslint-disable-next-line promise/catch-or-return
           promise
             .then(() => this.forceUpdate())
-            .catch(err => this.dataLackey.console.error('Failed to load URI ', err))
-
         })
       }
 
 
       loadResources (nextResources) {
-        if (nextResources === this.state.resources) return // do nothing
+
+        if (arraysEqual(nextResources , this.state.resources)) return Promise.resolve() // do nothing
 
         const prevResources   = this.state.resources,
               comingResources = new Set(nextResources).difference(prevResources),
