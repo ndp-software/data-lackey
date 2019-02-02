@@ -18,6 +18,7 @@ export default class Job {
       }, error: () => {
       },
     }
+    this.reloadAgain = this.reloadAgain.bind(this)
   }
 
   load (loadOptions) {
@@ -56,17 +57,20 @@ export default class Job {
       this.startPolling()
   }
 
-  // Should we poll?
   shouldPoll () {
     return this.options.reloadInterval
   }
 
   startPolling () {
+    // already started?
     if (this.reloadTimeoutId) return
-    this.reloadTimeoutId = window.setTimeout(() => {
-      this.reloadTimeoutId = null
-      this.reload()
-    }, this.options.reloadInterval)
+
+    this.reloadTimeoutId = window.setTimeout(this.reloadAgain, this.options.reloadInterval)
+  }
+
+  /* private */ reloadAgain() {
+    this.reloadTimeoutId = null
+    this.reload()
   }
 
   onError (e) {
@@ -82,4 +86,5 @@ export default class Job {
     if (this.reloadTimeoutId) window.clearTimeout(this.reloadTimeoutId)
     if (this.ruleOptions.unload) this.ruleOptions.unload(this.uri)
   }
+
 }
