@@ -33,10 +33,6 @@ export default class Jobs {
     return !!this.matchJobs(uris).find(uri => test(this.JOBS[uri]))
   }
 
-  // forEach (f) {
-  //   Object.keys(this.JOBS).forEach(k => f(this.JOBS[k]))
-  // }
-
   inspect () {
     return Object.values(this.JOBS).map(job => [
       job.uri,

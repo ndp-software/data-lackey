@@ -8,7 +8,6 @@ import {
 export default class Rule {
 
   constructor (pattern, ruleOptions) {
-    //console.log('****Rule Costructor', pattern, ruleOptions)
     const patternOptsForStrings = {
       segmentNameStartChar: '$',
       segmentValueCharset:  'a-zA-Z0-9\\-,_%~\\.!\\*\\(\\)',
