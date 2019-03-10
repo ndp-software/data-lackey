@@ -24,8 +24,7 @@
     "url": "http://ndpsoftware.com/"
   },
   "license": "MIT",
-  "engines": {
-  },
+  "engines": {},
   "bugs": {
     "url": "https://github.com/Verba/data-lackey/issues"
   },
