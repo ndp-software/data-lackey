@@ -114,34 +114,34 @@ describe('Rule', () => {
   })
 
 
-  describe('dependenciesAsStrings', () => {
+  describe('dependenciesAsURIs', () => {
     it('returns empty array if no dependsOn', () => {
       subject = new Rule('a', {})
 
-      expect(subject.dependenciesAsStrings()).toEqual([])
+      expect(subject.dependenciesAsURIs()).toEqual([])
     })
     it('returns string', () => {
       subject = new Rule('a', { dependsOn: 'foo' })
 
-      expect(subject.dependenciesAsStrings()).toEqual(['foo'])
+      expect(subject.dependenciesAsURIs()).toEqual(['foo'])
     })
     it('returns result of function', () => {
       subject = new Rule('a', { dependsOn: () => 'foo' })
 
-      expect(subject.dependenciesAsStrings()).toEqual(['foo'])
+      expect(subject.dependenciesAsURIs()).toEqual(['foo'])
     })
     it('passes params to function', () => {
       const dependsOn = jest.fn()
       subject = new Rule('a', { dependsOn })
 
-      subject.dependenciesAsStrings('foo')
+      subject.dependenciesAsURIs('foo')
 
       expect(dependsOn).toHaveBeenCalledWith('foo')
     })
     it('returns multiple', () => {
       subject = new Rule('a', { dependsOn: ['foo','bar'] })
 
-      expect(subject.dependenciesAsStrings()).toEqual(['foo','bar'])
+      expect(subject.dependenciesAsURIs()).toEqual(['foo','bar'])
     })
 
   })

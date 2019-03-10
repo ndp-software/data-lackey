@@ -5,12 +5,13 @@ import Job from './Job'
 
 describe('Job', () => {
 
-  let subject, loader, ruleOptions, onLoad
+  let subject, loader, ruleOptions, onLoad, console
 
   beforeEach(() => {
     loader      = () => Promise.resolve('foo')
     onLoad      = jest.fn()
-    ruleOptions = { onLoad }
+    console     = { log: jest.fn(), error: jest.fn() }
+    ruleOptions = { onLoad, console }
     subject     = new Job('uri', loader, ruleOptions)
   })
 

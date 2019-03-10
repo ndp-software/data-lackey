@@ -1,11 +1,19 @@
 {
   "presets": [
-    "env",
-    "react"
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "node": "current"
+        }
+      }
+    ],
+    "@babel/preset-react"
+    //    "module:@babel/plugin-transform-regenerator"
   ],
   "plugins": [
-     "transform-react-jsx",
-     "transform-object-rest-spread"
+    "@babel/transform-runtime"
+    //    "@babel/plugin-syntax-object-rest-spread"
   ]
 }
 

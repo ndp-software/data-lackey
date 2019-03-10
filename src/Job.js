@@ -3,7 +3,7 @@ import {
 } from './util'
 
 export default class Job {
-  constructor (jobURI, loader, ruleOptions) {
+  constructor (jobURI, loader, ruleOptions = {}) {
     this.uri         = jobURI
     this.loading     = false
     this.reloading   = false
@@ -13,11 +13,7 @@ export default class Job {
     this.ruleOptions = ruleOptions
     this.options     = ruleOptions
     this.reloadLimit = ruleOptions && isNumeric(ruleOptions.reloadLimit) ? ruleOptions.reloadLimit : 100 // don't reload indefinitely
-    this.console     = ruleOptions.console || {
-      log:      () => {
-      }, error: () => {
-      },
-    }
+    this.console     = ruleOptions.console || window.console
     this.reloadAgain = this.reloadAgain.bind(this)
   }
 

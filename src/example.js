@@ -12,7 +12,7 @@ export default function createLackeyWithLoaders (loaders) {
 
   // Step 1: create the lackey, with options
   const dataLackey = new DataLackey({
-    logFn: false
+    console: false
   })
 
   // Step 2: add any number of patterns/URIs

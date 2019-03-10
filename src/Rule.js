@@ -8,6 +8,7 @@ import {
 export default class Rule {
 
   constructor (pattern, ruleOptions) {
+    //console.log('****Rule Costructor', pattern, ruleOptions)
     const patternOptsForStrings = {
       segmentNameStartChar: '$',
       segmentValueCharset:  'a-zA-Z0-9\\-,_%~\\.!\\*\\(\\)',
@@ -58,7 +59,7 @@ export default class Rule {
    * @param params
    * @returns {*}
    */
-  dependenciesAsStrings (params) {
+  dependenciesAsURIs(params) {
     const deps = asArray(this.ruleOptions.dependsOn || [])
     return deps.map(dep => typeof(dep) === 'function' ? dep(...asArray(params)) : dep)
 

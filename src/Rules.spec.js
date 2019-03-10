@@ -9,8 +9,10 @@ describe('Rules', () => {
 
   beforeEach(() => {
     consoleError = jest.fn()
-    subject = new Rules({ error: consoleError })
+
     uniqueRule = new Rule('unique', {})
+
+    subject = new Rules({ error: consoleError })
     subject.push(uniqueRule)
     subject.push(new Rule('ambi$guous', {}))
     subject.push(new Rule('ambi$dextrous', {}))
@@ -29,4 +31,5 @@ describe('Rules', () => {
     expect(subject.findMatchingRule('ambitious')).not.toBeNull()
     expect(consoleError).toHaveBeenCalledWith('Ambiguous URI "ambitious".')
   })
+
 })

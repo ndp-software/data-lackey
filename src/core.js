@@ -1,11 +1,15 @@
 import Job   from './Job'
+import Jobs  from './Jobs'
 import Rule  from './Rule'
 import Rules from './Rules'
 import {
-  asMatchFn,
   asArray,
-  flatMap,
 }            from './util'
+
+
+const defaultOptions = {
+  console: window.console,
+}
 
 export class DataLackey {
 
@@ -13,18 +17,19 @@ export class DataLackey {
   //  `console`: a global.console type function that lets you customize the logging. The default
   //             is no logging. Regular logging pass in `global.console`.
   constructor (options = { console: false }) {
-    const log = (...s) => options.console
-                          && options.console.log
-                          && options.console.log(...s),
-          err = options.console
-                && options.console.error || log
+    const log   = (...s) => options.console
+                            && options.console.log
+                            && options.console.log(...s),
+          error = options.console
+                  && options.console.error || log
 
-    this.globalOnLoad = null
-    this.console      = { log: log, error: err }
-    this.RULES        = new Rules(this.console)
-    this.JOBS         = {}
-    this.QUEUE        = []
-    this.CIRCULAR_REF = -1
+    this.globalOnLoad    = null
+    this.options         = { ...defaultOptions, ...options }
+    this.options.console = { log, error }
+    this.RULES           = new Rules(this.options.console)
+    this.JOBS            = new Jobs()
+    this.QUEUE           = []
+    this.POLL_INTERVAL   = 1000
 
 
     this.pollNow = this.pollNow.bind(this)
@@ -32,89 +37,76 @@ export class DataLackey {
   }
 
   pollNow () {
+    this.enqueueNextPollNow(this.workNextJob())
+  }
 
-    const promise = this.workNextJob()
+  enqueueNextPollNow (promise) {
+    if (!promise) return window.setTimeout(this.pollNow, this.POLL_INTERVAL)
 
-    if (promise)
-      promise.then(r => {
+    promise
+      .then(r => {
         window.setTimeout(this.pollNow)
         return r
-      }).catch(this.pollNow)
-    else
-      window.setTimeout(this.pollNow, 1000)
+      })
+      .catch(this.pollNow)
   }
 
   rule (patterns, ruleOptions) {
     asArray(patterns).forEach(pattern => this.RULES.push(new Rule(pattern, ruleOptions)))
   }
 
-  load (...args) {
-    return this.jobForURI(...args)
-  }
-
+  // Are any of the given URLs loading?
   loading (...uris) {
-    return !!this.matchJobs(uris).find(uri => this.JOBS[uri].loading)
+    return !!this.JOBS.any(uris, job => job.loading)
   }
 
+  // Are any of the given URLs reloading?
   reloading (...uris) {
-    return !!this.matchJobs(uris).find(uri => this.JOBS[uri].reloading)
+    return !!this.JOBS.any(uris, job => job.reloading)
   }
 
+  // Are any of the given URLs failed?
   failed (...uris) {
-    return !!this.matchJobs(uris).find(uri => this.JOBS[uri].failed)
+    return !!this.JOBS.any(uris, job => job.failed)
   }
 
+  // Are all of the given URLs loaded?
   loaded (...uris) {
-    uris = asArray(uris) // accept either multiple params or an array
+    uris = asArray(uris) // accepts either multiple params or an array
     // Are there unknown URLs? then they are _not_ loaded
-    if (uris.map(uri => this.matchJobs(uri)).find(uris => uris.length === 0)) return false
-    return !!this.matchJobs(uris)
-                 .reduce(((acc, uri) => acc && this.JOBS[uri] && this.JOBS[uri].loaded), this.matchJobs(uris).length > 0)
+    if (uris.map(uri => this.JOBS.matchJobs(uri)).find(matchingJobs => matchingJobs.length === 0)) return false
+    return !!this.JOBS.matchJobs(uris)
+                 .reduce(((acc, uri) => acc && this.JOBS.job(uri) && this.JOBS.job(uri).loaded), this.JOBS.matchJobs(uris).length > 0)
   }
 
   job (jobURI) {
-    return this.JOBS[jobURI]
-  }
-
-  /**
-   * Find 0 or more job URIs based on a matcher
-   * @param matchers one of:
-   *    string   -- exact match for the URI
-   *    regex    -- wildcard (or other) match
-   *    function -- call the function with each jobURI for a true/false value
-   * @returns {Array.<*>}
-   */
-  matchJobs (...matchers) {
-    if (matchers.length > 1) return flatMap(matchers, m => this.matchJobs(m))
-    if (Array.isArray(matchers[0])) return flatMap(matchers[0], m => this.matchJobs(m))
-
-    return Object.keys(this.JOBS).filter(asMatchFn(matchers[0]))
+    return this.JOBS.job(jobURI)
   }
 
   unload (...jobURIMatchers) {
-    return this.matchJobs(...jobURIMatchers)
+    return this.JOBS.matchJobs(...jobURIMatchers)
                .map(jobURI => {
-                 this.console.log(`unload: ${jobURI}`)
-                 const job = this.JOBS[jobURI]
+                 this.options.console.log(`unload: ${jobURI}`)
+                 const job = this.JOBS.job(jobURI)
                  if (job && !job.loading) {
-                   this.JOBS[jobURI].onUnload()
-                   delete this.JOBS[jobURI]
+                   this.JOBS.job(jobURI).onUnload()
+                   this.JOBS.setJob(jobURI)
                  }
-                 return !this.JOBS[jobURI]
+                 return !this.JOBS.job(jobURI)
                })
                .reduce((acc, unloaded) => acc && unloaded, true)
   }
 
   enqueue (uris) {
-    this.console.log(`enqueue (${this.QUEUE.length})`, uris)
+    this.options.console.log(`enqueue (${this.QUEUE.length})`, uris)
     return asArray(uris).forEach(uri => this.QUEUE.unshift(uri))
   }
 
   workNextJob () {
     const nextURI = this.QUEUE.pop()
     if (!nextURI) return null
-    this.console.log(`workNextJob (${this.QUEUE.length})`)
-    return this.jobForURI(nextURI)
+    this.options.console.log(`workNextJob (${this.QUEUE.length})`)
+    return this.load(nextURI)
   }
 
   setGlobalOnLoad (onLoad) {
@@ -122,70 +114,61 @@ export class DataLackey {
   }
 
   inspect () {
-    return Object.values(this.JOBS).map(job => [
-      job.uri,
-      `${job.loading ? 'loading' : ''}${job.loaded ? 'loaded' : ''}${job.failed ? 'failed' : ''}`,
-      job.ruleOptions, job.promise,
-    ])
+    return this.JOBS.inspect()
   }
 
 
   // Serially resolve dependencies
-  promiseForDependencies (dependencies) {
-    this.console.log(`  checking dependencies (${dependencies.length})...`)
-    return dependencies
-      .reduce((result, dep) => {
-        return result.then(() => null).then(() => this.jobForURI(dep))
-      }, Promise.resolve())
-      .then(p => {
-        this.console.log(`  ${dependencies.length} dependencies loaded.`)
-        return p
-      })
+  promiseForDependencies (dependencyURIs) {
+    this.options.console.log(`  checking dependencies (${dependencyURIs.length})...`)
+    return Promise.all(dependencyURIs
+                         .map(dep => this.load(dep)))
+                  .then(p => {
+                    this.options.console.log(`  ${dependencyURIs.length} dependencies loaded.`)
+                    return p
+                  })
   }
 
   // Given a pattern's `options`, start the loader function and return a
   // record to track its status, including a `.promise` property.
   promiseForURIAndDependencies (jobURI, rule) {
-    const params       = rule.params(jobURI),
-          dependencies = rule.dependenciesAsStrings(params)
+    const params         = rule.params(jobURI),
+          dependencyURIs = rule.dependenciesAsURIs(params)
 
-    return (dependencies.length === 0)
+    return (dependencyURIs.length === 0)
            ? rule.rawLoaderPromise(params)
-           : this.promiseForDependencies(dependencies).then(() => rule.rawLoaderPromise(params))
+           : this.promiseForDependencies(dependencyURIs).then(() => rule.rawLoaderPromise(params))
   }
 
   // Load a given URI, returning a promise.
   // If already loaded or in progress, returns existing promise.
-  jobForURI (jobURI, loadOptions) {
-    if (Array.isArray(jobURI)) return jobURI.filter(u => u).map(u => this.jobForURI(u))
+  load (jobURI, loadOptions) {
+    if (Array.isArray(jobURI)) return Promise.all(jobURI.filter(u => u).map(u => this.load(u)))
 
     // If a URL resolves to "undefined" or "null", it was likely a mistake. Highlight it in the console.
-    this.console[(jobURI.includes('undefined') || jobURI.includes('null')) ? 'error': 'log'](`${this.JOBS[jobURI] && this.JOBS[jobURI].loaded ? '  cache hit for' : 'load'} "${jobURI}"`)
+    this.options.console[(jobURI.includes('undefined') || jobURI.includes('null')) ? 'error' : 'log'](`${this.JOBS.job(jobURI) && this.JOBS.job(jobURI).loaded ? '  cache hit for' : 'load'} "${jobURI}"`)
 
-    if (this.JOBS[jobURI] === this.CIRCULAR_REF) throw `Circular reference for URI "${jobURI}"`
-
-    if (!this.JOBS[jobURI]) {
-      this.JOBS[jobURI] = this.CIRCULAR_REF
+    if (!this.JOBS.job(jobURI)) {
 
       const rule = this.RULES.findMatchingRule(jobURI)
       if (!rule) throw `Unmatched URI "${jobURI}"`
 
-      const loader      = this.promiseForURIAndDependencies.bind(this, jobURI, rule)
-      this.JOBS[jobURI] = new Job(jobURI,
-                                  loader,
-                                  {
-                                    console: this.console,
-                                    onLoad:  this.globalOnLoad,
-                                    ...rule.ruleOptions,
-                                  })
-      this.JOBS[jobURI].load(loadOptions)
+      const loader = this.promiseForURIAndDependencies.bind(this, jobURI, rule)
+      this.JOBS.setJob(jobURI, new Job(jobURI,
+                                       loader,
+                                       {
+                                         console: this.options.console,
+                                         onLoad:  this.globalOnLoad,
+                                         ...rule.ruleOptions,
+                                       }))
+      this.JOBS.job(jobURI).load(loadOptions)
     }
 
-    return this.JOBS[jobURI].promise
+    return this.JOBS.job(jobURI).promise
   }
 
   reset () {
-    Object.keys(this.JOBS).forEach(k => this.unload(k))
+    this.unload(/.*/)
   }
 
 

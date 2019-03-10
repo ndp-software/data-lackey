@@ -1,16 +1,17 @@
 /* eslint-disable promise/avoid-new,promise/catch-or-return */
 /* eslint-env jest */
-import { DataLackey } from './core'
+import { DataLackey }       from './core'
+import { waitForAssertion } from './jest/waitForAssertion'
 
 
 describe('DataLackey', function () {
 
   const URI  = 'dl:test-123/456',
         URI2 = 'dl:test-123/789'
-  let subject, resolveFn, rejectFn, mockLog, result,
-        promise, promiseB,
-        promiseAResolve, promiseBResolve, promiseCResolve,
-        loaderFn, unloadFn
+  let subject, resolveFn, rejectFn, mockLog, resultPromise,
+      promise, promiseB,
+      resolvePromiseANow, resolvePromiseBNow, resolvePromiseCNow,
+      loaderFn, unloadFn
 
   beforeEach(() => {
     mockLog = jest.fn()
@@ -32,96 +33,15 @@ describe('DataLackey', function () {
       })
     })
 
-
-    describe('#matchJobs', () => {
-
-      describe('given a string', () => {
-        it('returns empty array when none known', () => {
-          expect(subject.matchJobs(URI)).toEqual([])
-        })
-
-        it('returns empty array when no match', () => {
-          subject.load(URI)
-          expect(subject.matchJobs('foo')).toEqual([])
-        })
-
-        it('returns a loading URI that matches', () => {
-          subject.load(URI)
-          expect(subject.matchJobs(URI)).toEqual([URI])
-        })
-
-        it('returns empty array if only partial match', () => {
-          subject.load(URI)
-          expect(subject.matchJobs(URI.slice(0, URI.length - 3))).toEqual([])
-        })
-
-      })
-
-      describe('given multiple params', () => {
-        it('returns empty array when none known', () => {
-          expect(subject.matchJobs(URI, URI2)).toEqual([])
-        })
-
-        it('returns a loading URI when first param matches', () => {
-          subject.load(URI)
-          expect(subject.matchJobs(URI, 'foo')).toEqual([URI])
-        })
-
-        it('returns URI when second param matches', () => {
-          subject.load(URI)
-          expect(subject.matchJobs('foo', URI)).toEqual([URI])
-        })
-
-        it('returns two matchJobs when two params match', () => {
-          subject.load(URI)
-          subject.load(URI2)
-          expect(subject.matchJobs(URI, URI2)).toEqual([URI, URI2])
-        })
-
-
-      })
-
-      describe('given a function', () => {
-        it('returns empty array when none known', () => {
-          expect(subject.matchJobs(_uri => true)).toEqual([])
-        })
-
-        it('returns URI if fn returns true', () => {
-          subject.load(URI)
-          expect(subject.matchJobs(_uri => true)).toEqual([URI])
-        })
-
-        it('does not return URI if fn returns false', () => {
-          subject.load(URI)
-          expect(subject.matchJobs(_uri => false)).toEqual([])
-        })
-      })
-
-      describe('given a regular expression', () => {
-        const regEx = /test-(\d+)\/(\d+)/
-
-        it('returns empty array when none known', () => {
-          expect(subject.matchJobs(regEx)).toEqual([])
-        })
-
-        it('returns URI if fn returns true', () => {
-          subject.load(URI)
-          expect(subject.matchJobs(regEx)).toEqual([URI])
-        })
-
-        it('does not return URI if fn returns false', () => {
-          subject.load(URI)
-          expect(subject.matchJobs(/x93fk/)).toEqual([])
-        })
-
-      })
+    afterEach(() => {
+      resolveFn()
     })
 
 
-    describe('#load', () => {
+    describe('load', () => {
       beforeEach(() => {
         expect(subject.job(URI)).toBe()
-        result = subject.load(URI)
+        resultPromise = subject.load(URI)
       })
 
       it('calls loader function with the matches', () => {
@@ -129,7 +49,7 @@ describe('DataLackey', function () {
       })
 
       it('returns result of loader function', () => {
-        expect(result).toEqual(promise)
+        expect(resultPromise).toEqual(promise)
       })
 
       it('logs for non-matching pattern', () => {
@@ -148,7 +68,7 @@ describe('DataLackey', function () {
         }).toThrow('Unmatched URI "foo"')
       })
 
-      it('logs for duplicate matches', () => {
+      it('logs for Ambiguous matches', () => {
         subject.rule(/b../, { loader: () => Promise.resolve(1) })
         subject.rule(/.a./, { loader: () => Promise.resolve(1) })
         subject.rule(/..r/, { loader: () => Promise.resolve(1) })
@@ -177,16 +97,40 @@ describe('DataLackey', function () {
 
     })
 
-    describe('#load (with array)', function () {
+    describe('load (with array)', function () {
       it('calls loader function with the matches', () => {
         expect(subject.job(URI)).toBe()
-        result = subject.load([null, URI, null, URI, null])
+        subject.load([null, URI, null, URI, null])
         expect(loaderFn).toBeCalledWith({ first: '123', second: '456' })
         expect(loaderFn).toHaveBeenCalledTimes(1)
       })
+
+      it('returns a promise for all loaders', () => {
+        let resolve2Fn
+        subject.rule('a', {
+          loader: () => promise,
+        })
+        subject.rule('b', {
+          loader: () => new Promise(resolve => {
+            resolve2Fn = resolve
+          }),
+        })
+
+        resultPromise = subject.load(['a', 'b'])
+
+        let isResolved = false
+        resultPromise  = resultPromise.then(() => isResolved = true)
+
+        expect(isResolved).toEqual(false)
+        resolveFn()
+        expect(isResolved).toEqual(false)
+        resolve2Fn()
+        waitForAssertion(() => expect(isResolved).toEqual(true))
+
+      })
     })
 
-    describe('#enqueue', () => {
+    describe('enqueue', () => {
 
       beforeEach(() => {
         expect(subject.job(URI)).toBe()
@@ -217,12 +161,12 @@ describe('DataLackey', function () {
         subject.workNextJob()
         expect(loaderFn).toBeCalledWith({ first: '123', second: '456' })
         subject.workNextJob()
-        expect(loaderFn).toBeCalledWith({'first': '123', 'second': '789'} )
+        expect(loaderFn).toBeCalledWith({ 'first': '123', 'second': '789' })
         expect(loaderFn).toHaveBeenCalledTimes(2)
       })
     })
 
-    describe('#unload()', () => {
+    describe('unload()', () => {
 
       describe('before loading', () => {
 
@@ -241,7 +185,7 @@ describe('DataLackey', function () {
         it('is ignored', () => {
           expect(subject.loaded(URI)).toEqual(false)
 
-          result = subject.load(URI)
+          resultPromise = subject.load(URI)
           expect(subject.loaded(URI)).toEqual(false)
           expect(subject.loading(URI)).toEqual(true)
 
@@ -391,22 +335,22 @@ describe('DataLackey', function () {
 
     it('express multiple dependencies', async function () {
       // Dependency A
-      const promiseA = new Promise(resolve => promiseAResolve = resolve)
-      const loaderA = jest.fn(() => promiseA)
+      const promiseA = new Promise(resolve => resolvePromiseANow = resolve)
+      const loaderA  = jest.fn(() => promiseA)
       subject.rule('A9', {
         loader: loaderA,
       })
 
       // Dependency B
-      const promiseB = new Promise(resolve => promiseBResolve = resolve)
-      const loaderB = jest.fn(() => promiseB)
+      const promiseB = new Promise(resolve => resolvePromiseBNow = resolve)
+      const loaderB  = jest.fn(() => promiseB)
       subject.rule('B$post', {
         loader: loaderB,
       })
 
       // C depends on A and B
-      const promiseC = new Promise(resolve => promiseCResolve = resolve)
-      const loaderC = jest.fn(() => promiseC)
+      const promiseC = new Promise(resolve => resolvePromiseCNow = resolve)
+      const loaderC  = jest.fn(() => promiseC)
       subject.rule('C$post', {
         loader:    loaderC,
         dependsOn: [i => `A${i.post}`, 'B4'],
@@ -417,56 +361,54 @@ describe('DataLackey', function () {
 
       const uberPromise = subject.load('C9') // <== trigger everything
 
-      expect(loaderA).not.toHaveBeenCalled()
-      expect(loaderB).not.toHaveBeenCalled()
-      expect(loaderC).not.toHaveBeenCalled()
-      promiseAResolve('promiseA')
+      // expect(loaderA).not.toHaveBeenCalled()
+      // expect(loaderB).not.toHaveBeenCalled()
+      // expect(loaderC).not.toHaveBeenCalled()
+      resolvePromiseANow('promiseA')
       await promiseA
 
-      expect(loaderA).not.toHaveBeenCalled()
-      expect(loaderB).not.toHaveBeenCalled()
-      expect(loaderC).not.toHaveBeenCalled()
-      promiseBResolve(1)
+      // expect(loaderA).toHaveBeenCalled()
+      // expect(loaderB).not.toHaveBeenCalled()
+      // expect(loaderC).not.toHaveBeenCalled()
+      resolvePromiseBNow(1)
       await promiseB
 
       expect(loaderA).toHaveBeenCalled()
-      expect(loaderB).not.toHaveBeenCalled()
+      expect(loaderB).toHaveBeenCalled()
       expect(loaderC).not.toHaveBeenCalled()
-      // expect(loaderC).toHaveBeenCalled()
-      promiseCResolve(true)
+      resolvePromiseCNow(true)
       await promiseC
       await uberPromise
 
       expect(loaderA).toHaveBeenCalledWith({})
       expect(loaderB).toHaveBeenCalledWith({ post: '4' })
       expect(loaderC).toHaveBeenCalledWith({ post: '9' })
-
     })
 
     it('express transitive dependencies', async function () {
       // Dependency A
-      const promiseA = new Promise(resolve => promiseAResolve = resolve)
-      const loaderA = jest.fn(() => promiseA)
+      const promiseA = new Promise(resolve => resolvePromiseANow = resolve)
+      const loaderA  = jest.fn(() => promiseA)
       subject.rule('A$post', {
         loader: loaderA,
       })
 
       // Dependency B
-      const promiseB = new Promise(resolve => promiseBResolve = resolve)
-      const loaderB = jest.fn(() => promiseB)
+      const promiseB = new Promise(resolve => resolvePromiseBNow = resolve)
+      const loaderB  = jest.fn(() => promiseB)
       subject.rule('B$post', {
         loader:    loaderB,
-        dependsOn: i => `A${i}`,
+        dependsOn: ({ post }) => `A${post}`,
       })
 
       // C depends on A and B
       const promiseC = new Promise(resolve => {
-        promiseCResolve = resolve
+        resolvePromiseCNow = resolve
       })
       const loaderC  = jest.fn(() => promiseC)
       subject.rule('C$post', {
         loader:    loaderC,
-        dependsOn: i => `B${i}`,
+        dependsOn: ({ post }) => `B${post}`,
       })
 
       expect(loaderA).not.toHaveBeenCalled()
@@ -475,91 +417,80 @@ describe('DataLackey', function () {
 
       const uberPromise = subject.load('C123') // <== trigger everything
 
-      expect(loaderA).not.toHaveBeenCalled()
+      expect(loaderA).toHaveBeenCalled()
       expect(loaderB).not.toHaveBeenCalled()
       expect(loaderC).not.toHaveBeenCalled()
 
-      promiseAResolve('promiseA')
-      promiseA.then(() => promiseBResolve('promiseB'))
-      promiseB.then(() => promiseCResolve('promiseC'))
-
-      promiseA.then(() => {
-        expect(loaderA).not.toHaveBeenCalled()
-        expect(loaderB).not.toHaveBeenCalled()
-        expect(loaderC).not.toHaveBeenCalled()
-        return 'A'
-      })
-
-      promiseB.then(() => {
-        expect(loaderA).not.toHaveBeenCalled()
-        expect(loaderB).not.toHaveBeenCalled()
-        expect(loaderC).not.toHaveBeenCalled()
-        return 'B'
-      })
-
-      promiseC.then(() => {
-        expect(loaderA).not.toHaveBeenCalledWith('123')
-        expect(loaderB).not.toHaveBeenCalledWith('123')
-        expect(loaderC).not.toHaveBeenCalledWith('123')
-        return 'C'
-      })
-
+      resolvePromiseANow('promiseA')
       await promiseA
+
+      resolvePromiseBNow('promiseB')
       await promiseB
+
+      resolvePromiseCNow('promiseC')
       await promiseC
+
       await uberPromise
+
+      expect(loaderB).toHaveBeenCalled()
+      expect(loaderC).toHaveBeenCalled()
     })
 
     it('express cyclic dependencies', async function () {
       // Dependency A
-      const promiseA = new Promise(resolve => promiseAResolve = resolve)
-      const loaderA = jest.fn(() => promiseA)
-      subject.rule('A$post', {
+      const promiseA = new Promise(resolve => resolvePromiseANow = resolve)
+      const loaderA  = jest.fn(() => promiseA)
+      subject.rule('A', {
         loader:    loaderA,
-        dependsOn: i => `B${i}`,
+        dependsOn: () => 'B',
       })
 
       // Dependency B
-      const promiseB = new Promise(resolve => promiseBResolve = resolve)
-      const loaderB = jest.fn(() => promiseB)
-      subject.rule('B$post', {
+      const promiseB = new Promise(resolve => resolvePromiseBNow = resolve)
+      const loaderB  = jest.fn(() => promiseB)
+      subject.rule('B', {
         loader:    loaderB,
-        dependsOn: i => `A${i}`,
+        dependsOn: () => 'A',
       })
 
       expect(loaderA).not.toHaveBeenCalled()
       expect(loaderB).not.toHaveBeenCalled()
 
-      subject.load('A123')
+      const a = subject.load('A')
+
+      expect(subject.loading('A')).toEqual(true)
+      expect(subject.loading('B')).toEqual(true)
+      expect(subject.loaded('A')).toEqual(false)
+      expect(subject.loaded('B')).toEqual(false)
 
       expect(loaderA).not.toHaveBeenCalled()
       expect(loaderB).not.toHaveBeenCalled()
 
-      promiseAResolve('promiseA')
-      promiseA.then(() => promiseBResolve('promiseB'))
-
-      promiseA.then(() => {
-        expect(loaderA).toHaveBeenCalled()
-        expect(loaderB).toHaveBeenCalled()
-        return 'A'
-      })
-
-      promiseB.then(() => {
-        expect(loaderA).toHaveBeenCalled()
-        expect(loaderB).toHaveBeenCalled()
-        return 'B'
-      })
-
+      resolvePromiseANow('promiseA')
+      resolvePromiseBNow('promiseB')
       await promiseA
+
+      expect(loaderA).not.toHaveBeenCalled()
+      expect(loaderB).toHaveBeenCalled()
       await promiseB
+
+      expect(loaderA).not.toHaveBeenCalled()
+      expect(loaderB).toHaveBeenCalled()
+      await a
+      expect(loaderA).toHaveBeenCalled()
+      expect(loaderB).toHaveBeenCalled()
+
+      expect(loaderA).toHaveBeenCalled()
+      expect(loaderB).toHaveBeenCalled()
+
     })
   })
 
-  describe('#reset', () => {
+  describe('reset', () => {
 
     const URI = 'dl:test'
     let subject, mockLog,
-          loaderFn, unloadFn
+        loaderFn, unloadFn
 
     beforeEach(() => {
       mockLog = jest.fn()
@@ -575,24 +506,24 @@ describe('DataLackey', function () {
     })
 
     it('does nothing if nothing loaded', () => {
-      expect(subject.JOBS).toEqual({})
+      expect(subject.JOBS.JOBS).toEqual({})
       expect(subject.loaded(URI)).toBe(false)
 
       subject.reset()
 
       expect(subject.loaded(URI)).toBe(false)
-      expect(subject.JOBS).toEqual({})
+      expect(subject.JOBS.JOBS).toEqual({})
     })
 
     it('marks previously loaded jobs as unloaded', async () => {
       await subject.load(URI)
       expect(subject.loaded(URI)).toBe(true)
-      expect(subject.JOBS).not.toEqual({})
+      expect(subject.JOBS.JOBS).not.toEqual({})
 
       subject.reset()
 
       expect(subject.loaded(URI)).toBe(false)
-      expect(subject.JOBS).toEqual({})
+      expect(subject.JOBS.JOBS).toEqual({})
     })
 
     it('calls `unload` (this behavior subject to change)', async () => {
@@ -605,7 +536,7 @@ describe('DataLackey', function () {
     })
 
     it('handles in-progress jobs gracefully', async () => {
-      const promise =  subject.load(URI)
+      const promise = subject.load(URI)
       expect(subject.loading(URI)).toBe(true)
 
       subject.reset()
@@ -613,6 +544,60 @@ describe('DataLackey', function () {
       await promise
       expect(subject.loading(URI)).toBe(false)
     })
+  })
+
+
+  describe('pollNow and #enqueueNextPollNow', () => {
+
+    it('passes result of workNextJob to enqueueNextPollNow', () => {
+      subject.workNextJob        = jest.fn(() => 'foo')
+      subject.enqueueNextPollNow = jest.fn()
+
+      subject.pollNow()
+
+      expect(subject.enqueueNextPollNow).toHaveBeenCalledWith('foo')
+    })
+
+    it('keeps polling if the promise is null', () => {
+      subject.workNextJob = jest.fn(() => null)
+      window.setTimeout   = jest.fn()
+
+      subject.enqueueNextPollNow(null)
+
+      expect(window.setTimeout).toHaveBeenCalledWith(subject.pollNow, 1000)
+    })
+
+    it('keeps polling when the promise resolves', async () => {
+      jest.useFakeTimers()
+      subject.pollNow = jest.fn()
+
+      const promise1 = Promise.resolve()
+      subject.enqueueNextPollNow(promise1)
+
+      await promise1
+      expect(subject.pollNow).not.toHaveBeenCalled()
+      jest.runOnlyPendingTimers()
+
+      expect(subject.pollNow).toHaveBeenCalled()
+    })
+
+    it('keeps polling when the promise rejects', async () => {
+      // jest.useFakeTimers()
+      subject.pollNow = jest.fn()
+
+      const promise = Promise.reject('fail')
+      subject.enqueueNextPollNow(promise)
+
+      try {
+        await promise
+      } catch (e) {
+        expect(e).toEqual('fail')
+        expect(subject.pollNow).toHaveBeenCalled()
+      }
+
+    })
+
+
   })
 
 
