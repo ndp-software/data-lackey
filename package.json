@@ -54,7 +54,8 @@
     "jest": "*",
     "prop-types": "*",
     "react": "*",
-    "react-dom": "*"
+    "react-dom": "*",
+    "release-it": "^*"
   },
   "jest": {
     "roots": [
