@@ -1,7 +1,7 @@
 {
   "name": "data-lackey",
-  "version": "1.0.0-alpha.4",
-  "description": "orchestrates loading of your data",
+  "version": "1.0.0-alpha.5",
+  "description": "orchestrate your data loading",
   "main": "dist/index.js",
   "files": [
     "dist/*.js"
@@ -9,7 +9,7 @@
   "scripts": {
     "test": "./node_modules/.bin/jest --coverage",
     "lint": "./node_modules/.bin/eslint ./src/",
-    "build": "babel src --ignore '*.spec.js' --out-dir dist",
+    "build": "babel src --ignore '*.spec.js' --ignore 'dist/jest/**/*' --out-dir dist",
     "prepublish": "yarn build"
   },
   "repository": "github:Verba/data-lackey.git",
