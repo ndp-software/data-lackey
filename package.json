@@ -10,7 +10,8 @@
     "test": "./node_modules/.bin/jest --coverage",
     "lint": "./node_modules/.bin/eslint ./src/",
     "build": "babel src --ignore '*.spec.js' --ignore 'dist/jest/**/*' --out-dir dist",
-    "prepublish": "yarn build"
+    "prepublish": "yarn build",
+    "release": "./node_modules/.bin/release-it"
   },
   "repository": "github:Verba/data-lackey.git",
   "keywords": [
@@ -25,7 +26,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "^10"
+    "node": ">=8"
   },
   "bugs": {
     "url": "https://github.com/Verba/data-lackey/issues"
