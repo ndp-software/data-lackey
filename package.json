@@ -87,5 +87,13 @@
   },
   "dependencies": {
     "url-pattern": "^1"
+  },
+  "release-it": {
+    "git": {
+      "tagName": "v${version}"
+    },
+    "github": {
+      "release": true
+    }
   }
 }
