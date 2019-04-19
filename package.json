@@ -1,6 +1,6 @@
 {
   "name": "data-lackey",
-  "version": "1.0.0-alpha.9",
+  "version": "1.0.0",
   "description": "orchestrate your data loading",
   "main": "dist/index.js",
   "files": [
