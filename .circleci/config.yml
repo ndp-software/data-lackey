@@ -8,28 +8,16 @@ jobs:
     environment:
       CC_TEST_REPORTER_ID: 980b649050b64af78f8eeb73f1a6cd7c9d0376ea8437747531ce254cd1fe1779
     docker:
-      # specify the version you desire here
       - image: circleci/node:10
-      
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/mongo:3.4.4
-
     working_directory: ~/repo
-
     steps:
       - checkout
-
-      # Download and cache dependencies
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "package.json" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-
       - run: yarn install
-
       - save_cache:
           paths:
             - node_modules
@@ -47,5 +35,3 @@ jobs:
           command: |
             ./cc-test-reporter format-coverage -t lcov -o "coverage/codeclimate.$CIRCLE_NODE_INDEX.json"
       - run: yarn lint
-
-
