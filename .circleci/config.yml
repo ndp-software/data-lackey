@@ -29,13 +29,10 @@ jobs:
              chmod +x ./cc-test-reporter
              ./cc-test-reporter before-build
       - run:
-          name: Create test results directory
-          command: mkdir test-results
-      - run:
           name: Run tests with JUnit as reporter
           command: JEST_JUNIT_OUTPUT_DIR=./test-results/jest yarn test --ci --runInBand --reporters=default --reporters=jest-junit
       - store_artifacts:
-          path: coverage/lcov-report
+          path: ./coverage/lcov-report
           prefix: coverage
       - run:
           name: Push Climate Test Coverage
