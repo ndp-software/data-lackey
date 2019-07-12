@@ -60,9 +60,9 @@ export function loadData (...resourceCreators) {
               promise       = this.loadResources(nextResources)
 
         this.setState({ resources: nextResources, }, () => {
-          // eslint-disable-next-line promise/catch-or-return
           promise
             .then(() => this.forceUpdate())
+            .catch(() => this.forceUpdate())
         })
       }
 
