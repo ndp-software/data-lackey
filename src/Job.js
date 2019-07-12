@@ -3,17 +3,17 @@ import {
 } from './util'
 
 export default class Job {
-  constructor (jobURI, loader, ruleOptions = {}) {
+  constructor (jobURI, loader, options = {}) {
     this.uri         = jobURI
     this.loading     = false
     this.reloading   = false
     this.loaded      = false
     this.failed      = false
     this.loader      = loader
-    this.ruleOptions = ruleOptions
-    this.options     = ruleOptions
-    this.reloadLimit = ruleOptions && isNumeric(ruleOptions.reloadLimit) ? ruleOptions.reloadLimit : 100 // don't reload indefinitely
-    this.console     = ruleOptions.console || window.console
+    this.ruleOptions = options
+    this.options     = options
+    this.reloadLimit = options && isNumeric(options.reloadLimit) ? options.reloadLimit : 100 // don't reload indefinitely
+    this.console     = options.console || window.console
     this.reloadAgain = this.reloadAgain.bind(this)
   }
 
