@@ -11,7 +11,7 @@
     "lint": "./node_modules/.bin/eslint ./src/",
     "build": "babel src --ignore '*.spec.js' --ignore 'dist/jest/**/*' --out-dir dist",
     "prepublish": "yarn build",
-    "release": "./node_modules/.bin/release-it"
+    "release-it": "GITHUB_TOKEN=$RELEASE_IT_GITHUB_TOKEN ./node_modules/.bin/release-it"
   },
   "repository": "github:Verba/data-lackey.git",
   "keywords": [
