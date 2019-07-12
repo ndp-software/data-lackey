@@ -71,7 +71,10 @@
         "lines": 96
       }
     },
-    "reporters": ["default", "jest-junit"],
+    "reporters": [
+      "default",
+      "jest-junit"
+    ],
     "restoreMocks": true,
     "roots": [
       "./src"
