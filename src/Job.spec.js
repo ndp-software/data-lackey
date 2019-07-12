@@ -23,13 +23,21 @@ describe('Job', () => {
   })
 
   describe('.load', () => {
-    let resolver, promise
+    let resolver, rejecter, promise, resolved, rejected
 
     beforeEach(() => {
-      promise = new Promise(resolve => resolver = () => resolve())
-      loader  = () => promise
-      subject = new Job('uri', loader, ruleOptions)
-      expect(subject.load({})).toEqual(promise)
+      resolved = false
+      rejected = false
+      promise  = new Promise((resolve, reject) => {
+        resolver = () => resolve()
+        rejecter = () => reject()
+      })
+      loader   = () => promise
+      subject  = new Job('uri', loader, ruleOptions)
+      expect(subject.load({})
+                    .then(() => resolved = true)
+                    .catch(() => rejected = true))
+        .toEqual(promise)
     })
 
     describe('when pending', () => {
@@ -46,30 +54,25 @@ describe('Job', () => {
     })
 
     describe('resolved', () => {
-      beforeEach(() => {
-        resolver()
-      })
+      beforeEach(() => resolver())
 
       it('is not loading', () => expect(subject.loading).toBeFalsy())
       it('is not reloading', () => expect(subject.reloading).toBeFalsy())
       it('is loaded', () => expect(subject.loaded).toBeTruthy())
       it('is not failed', () => expect(subject.failed).toBeFalsy())
+      it('promise is resolved', () => expect(resolved).toBeTruthy())
+      it('promise is not rejected', () => expect(rejected).toBeFalsy())
     })
 
-    describe('failing', () => {
-      let fail
-      beforeEach(() => {
-        // eslint-disable-next-line no-unused-vars
-        loader = () => new Promise((resolve, reject) => fail = () => reject())
-        subject = new Job('uri', loader, ruleOptions)
-        subject.load({})
-        fail()
-      })
+    describe('rejected', () => {
+      beforeEach(() => rejecter())
 
       it('is loading', () => expect(subject.loading).toBeFalsy())
       it('is not reloading', () => expect(subject.reloading).toBeFalsy())
       it('is not loaded', () => expect(subject.loaded).toBeFalsy())
       it('is failed', () => expect(subject.failed).toBeTruthy())
+      it('promise is not resolved', () => expect(resolved).toBeFalsy())
+      it('promise is rejected', () => expect(rejected).toBeTruthy())
     })
 
   })
@@ -105,7 +108,7 @@ describe('Job', () => {
 
     it('calls reload', async () => {
       let resolver
-      loader = () => new Promise(resolve => resolver = () => resolve())
+      loader                  = () => new Promise(resolve => resolver = () => resolve())
       ruleOptions.reloadLimit = 10
       subject                 = new Job('uri', loader, ruleOptions)
       subject.loading         = false
@@ -129,10 +132,10 @@ describe('Job', () => {
     })
 
     it('respects reloadLimit', () => {
-      subject                 = new Job('uri', loader, ruleOptions)
-      subject.loaded          = true
+      subject             = new Job('uri', loader, ruleOptions)
+      subject.loaded      = true
       subject.reloadLimit = 0
-      subject.load = jest.fn()
+      subject.load        = jest.fn()
 
       subject.reload()
 

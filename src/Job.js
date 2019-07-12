@@ -22,13 +22,12 @@ export default class Job {
     this.loadOptions = loadOptions
     this.options     = { ...this.ruleOptions, ...this.loadOptions }
     this.promise     = this.loader()
-                           .then(r => {
-                                   this.onLoaded()
-                                   return r
-                                 },
-                                 e => {
-                                   this.onError(e)
-                                 })
+                           .then(r => (this.onLoaded(), r))
+                           .catch(
+                             e => {
+                               this.onError(e)
+                               throw e
+                             })
     if (this.ruleOptions && this.ruleOptions.onLoad) this.ruleOptions.onLoad(this)
     return this.promise
   }
