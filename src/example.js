@@ -8,12 +8,10 @@ Example of how you would specify data dependencies.
 
 import { DataLackey } from './core'
 
-export default function createLackeyWithLoaders (loaders) {
+export default function createLackeyWithLoaders (loaders, options = { console: false}) {
 
   // Step 1: create the lackey, with options
-  const dataLackey = new DataLackey({
-    console: false
-  })
+  const dataLackey = new DataLackey(options)
 
   // Step 2: add any number of patterns/URIs
   // `dispatch` would probably be used here.
