@@ -39,11 +39,18 @@ describe('HOC', function () {
     const itemLoader    = jest.fn(id => (id == FAIL) ? Promise.reject('failure') : Promise.resolve(`item ${id} loaded`).then(recordLoad))
     const detailsLoader = jest.fn(id => Promise.resolve(`detail ${id} loaded`).then(recordLoad))
 
+    options          = {
+      console: {
+        log:   jest.fn(),
+        error: jest.fn(),
+      },
+    }
     lackey           = createLackeyWithLoaders({
                                                  rootLoader,
                                                  itemLoader,
                                                  detailsLoader,
-                                               })
+                                               },
+                                               options)
     WrappedComponent = loadData('dl:items', { autoUnload: true })(sampleComponent)
   })
 

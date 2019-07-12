@@ -17,11 +17,8 @@ export class DataLackey {
   //  `console`: a global.console type function that lets you customize the logging. The default
   //             is no logging. Regular logging pass in `global.console`.
   constructor (options = { console: false }) {
-    const log   = (...s) => options.console
-                            && options.console.log
-                            && options.console.log(...s),
-          error = options.console
-                  && options.console.error || log
+    const log   = (options.console && options.console.log) || ((..._s) => null),
+          error = (options.console && options.console.error) || log
 
     this.globalOnLoad    = null
     this.options         = { ...defaultOptions, ...options }
