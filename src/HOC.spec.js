@@ -11,7 +11,6 @@ import { loadData }            from './HOC'
 import createLackeyWithLoaders from './example.js'
 
 
-
 function sampleComponent (props) {
   return <div>
     [{props.isLoading ? '' : 'not '}isLoading]
@@ -22,28 +21,33 @@ function sampleComponent (props) {
 
 describe('HOC', function () {
 
-  const FAIL = 999
   let lackey,
-        // eslint-disable-next-line no-unused-vars
-        WrappedComponent,
-        recordLoad,
-        propTracker
+      // eslint-disable-next-line no-unused-vars
+      WrappedComponent,
+      recordLoad,
+      propTracker,
+      options
 
   beforeEach(() => {
-    // window.console.error = jest.fn()
-
     propTracker = 'Dispatched: '
     recordLoad  = jest.fn(x => propTracker = `${propTracker} ${x}`)
 
     const rootLoader    = jest.fn(() => Promise.resolve('items loaded').then(recordLoad))
-    const itemLoader    = jest.fn(id => (id == FAIL) ? Promise.reject('failure') : Promise.resolve(`item ${id} loaded`).then(recordLoad))
+    const itemLoader    = jest.fn(id => Promise.resolve(`item ${id} loaded`).then(recordLoad))
     const detailsLoader = jest.fn(id => Promise.resolve(`detail ${id} loaded`).then(recordLoad))
 
+    options          = {
+      console: {
+        log:   jest.fn(),
+        error: jest.fn(),
+      },
+    }
     lackey           = createLackeyWithLoaders({
                                                  rootLoader,
                                                  itemLoader,
                                                  detailsLoader,
-                                               })
+                                               },
+                                               options)
     WrappedComponent = loadData('dl:items', { autoUnload: true })(sampleComponent)
   })
 
@@ -97,18 +101,21 @@ describe('HOC', function () {
       expect(recordLoad).toHaveBeenCalledWith('items loaded')
     })
 
-    it('logs when loading fails', async () => {
-      WrappedComponent = loadData(`dl:item/${FAIL}`)(sampleComponent)
+  })
 
-      lackey.options.console.error = jest.fn()
+  describe('when loading fails', () => {
+    it('logs', async () => {
+      const uri = 'FAILURE'
+      lackey.rule(uri, { loader: () => Promise.reject('reject!') })
+      WrappedComponent = loadData(uri)(() => <div />)
 
-      mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
+      mount(<WrappedComponent who='dawg' dataLackey={lackey} />)
 
+      await new Promise(resolve => window.setTimeout(resolve, 10)) //lackey.load(uri)
 
-      await new Promise(resolve => window.setTimeout(resolve, 100))
-
-      expect(lackey.options.console.error).toHaveBeenCalledWith('failed dl:item/999 Error=failure')
+      expect(options.console.error).toHaveBeenCalledWith('failed FAILURE Error=reject!')
     })
+
   })
 
   describe('with multiple static resources', () => {

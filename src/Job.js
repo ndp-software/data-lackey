@@ -3,17 +3,17 @@ import {
 } from './util'
 
 export default class Job {
-  constructor (jobURI, loader, ruleOptions = {}) {
+  constructor (jobURI, loader, options = {}) {
     this.uri         = jobURI
     this.loading     = false
     this.reloading   = false
     this.loaded      = false
     this.failed      = false
     this.loader      = loader
-    this.ruleOptions = ruleOptions
-    this.options     = ruleOptions
-    this.reloadLimit = ruleOptions && isNumeric(ruleOptions.reloadLimit) ? ruleOptions.reloadLimit : 100 // don't reload indefinitely
-    this.console     = ruleOptions.console || window.console
+    this.ruleOptions = options
+    this.options     = options
+    this.reloadLimit = options && isNumeric(options.reloadLimit) ? options.reloadLimit : 100 // don't reload indefinitely
+    this.console     = options.console || window.console
     this.reloadAgain = this.reloadAgain.bind(this)
   }
 
@@ -22,13 +22,10 @@ export default class Job {
     this.loadOptions = loadOptions
     this.options     = { ...this.ruleOptions, ...this.loadOptions }
     this.promise     = this.loader()
-                           .then(r => {
-                                   this.onLoaded()
-                                   return r
-                                 },
-                                 e => {
-                                   this.onError(e)
-                                 })
+                           .then(r => (this.onLoaded(), r), e => {
+                             this.onError(e)
+                             throw e
+                           })
     if (this.ruleOptions && this.ruleOptions.onLoad) this.ruleOptions.onLoad(this)
     return this.promise
   }
@@ -70,11 +67,11 @@ export default class Job {
   }
 
   onError (e) {
+    this.console.error(`failed ${this.uri} Error=${e}`)
     this.loading   = false
     this.reloading = false
     this.loaded    = false
     this.failed    = true
-    this.console.error(`failed ${this.uri} Error=${e}`)
     this.error = e
   }
 
