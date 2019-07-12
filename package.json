@@ -57,7 +57,7 @@
     "prop-types": "*",
     "react": "*",
     "react-dom": "*",
-    "release-it": "^*"
+    "release-it": "*"
   },
   "jest": {
     "coveragePathIgnorePatterns": [
