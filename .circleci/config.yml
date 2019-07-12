@@ -29,12 +29,11 @@ jobs:
              chmod +x ./cc-test-reporter
              ./cc-test-reporter before-build
       - run:
+          name: Create test results directory
+          command: mkdir test-results
+      - run:
           name: Run tests with JUnit as reporter
-          command: yarn test --ci --runInBand --reporters=default --reporters=jest-junit
-      - store_artifacts: # special step to save test results as as artifact
-          # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: junit.xml
-          prefix: tests
+          command: JEST_JUNIT_OUTPUT_DIR=./test-results/jest yarn test --ci --runInBand --reporters=default --reporters=jest-junit
       - store_artifacts:
           path: coverage/lcov-report
           prefix: coverage
@@ -43,6 +42,6 @@ jobs:
           command: |
             ./cc-test-reporter after-build
             # ./cc-test-reporter format-coverage -t lcov -o "coverage/codeclimate.$CIRCLE_NODE_INDEX.json"
-      - run: yarn lint --format junit --output-file ~/eslint.xml
+      - run: yarn lint --format junit --output-file ./test-results/eslint/eslint.xml
       - store_test_results:
-          path: ~/eslint.xml
+          path: test-results
