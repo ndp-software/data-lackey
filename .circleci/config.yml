@@ -25,11 +25,14 @@ jobs:
       - run:
           name: Setup Code Climate test-reporter
           command: |
-            # download test reporter as a static binary
-                     curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-                     chmod +x ./cc-test-reporter
-                     ./cc-test-reporter before-build
+             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+             chmod +x ./cc-test-reporter
+             ./cc-test-reporter before-build
       - run: yarn test
+      - run:
+          name: Push Climate Test Coverage
+          command: |
+            ./cc-test-reporter after-build
       - run:
           name: Code Climate Test Coverage
           command: |
