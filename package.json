@@ -53,22 +53,13 @@
     "eslint-plugin-standard": "*",
     "hoist-non-react-statics": "^3.3.0",
     "jest": "*",
+    "jest-junit": "*",
     "prop-types": "*",
     "react": "*",
     "react-dom": "*",
     "release-it": "^*"
   },
   "jest": {
-    "roots": [
-      "./src"
-    ],
-    "setupFiles": [
-      "./src/jest/enzyme.js",
-      "./src/jest/waitForAssertion.js"
-    ],
-    "setupFilesAfterEnv": [
-      "./src/jest/defaultTimeout.js"
-    ],
     "coveragePathIgnorePatterns": [
       "./src/jest"
     ],
@@ -80,7 +71,18 @@
         "lines": 96
       }
     },
+    "reporters": ["default", "jest-junit"],
     "restoreMocks": true,
+    "roots": [
+      "./src"
+    ],
+    "setupFiles": [
+      "./src/jest/enzyme.js",
+      "./src/jest/waitForAssertion.js"
+    ],
+    "setupFilesAfterEnv": [
+      "./src/jest/defaultTimeout.js"
+    ],
     "transform": {
       "^.+\\.jsx?$": "babel-jest"
     }

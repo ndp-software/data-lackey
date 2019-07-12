@@ -14,27 +14,35 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "package.json" }}
+          - v1-dependencies-{{ checksum "yarn.lock" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
       - run: yarn install
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: v1-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Setup Code Climate test-reporter
           command: |
              curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
              chmod +x ./cc-test-reporter
              ./cc-test-reporter before-build
-      - run: yarn test
+      - run:
+          name: Run tests with JUnit as reporter
+          command: yarn test --ci --runInBand --reporters=default --reporters=jest-junit
+      - store_artifacts: # special step to save test results as as artifact
+          # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
+          path: junit.xml
+          prefix: tests
+      - store_artifacts:
+          path: coverage/lcov-report
+          prefix: coverage
       - run:
           name: Push Climate Test Coverage
           command: |
             ./cc-test-reporter after-build
-      - run:
-          name: Code Climate Test Coverage
-          command: |
-            ./cc-test-reporter format-coverage -t lcov -o "coverage/codeclimate.$CIRCLE_NODE_INDEX.json"
-      - run: yarn lint
+            # ./cc-test-reporter format-coverage -t lcov -o "coverage/codeclimate.$CIRCLE_NODE_INDEX.json"
+      - run: yarn lint --format junit --output-file ~/eslint.xml
+      - store_test_results:
+          path: ~/eslint.xml
