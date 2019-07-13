@@ -162,19 +162,15 @@ describe('Rule', () => {
         expect(subject.params('/asset?i=foo')).toEqual({ 'i': 'foo' })
       })
 
-      it('can include ampersand', () => {
-        subject = new Rule('asset', { requiredParams: [] })
+      ;[8, 'word', 'two words', 'ampersand a&p', 'a=b+c/d*2'].forEach(p => {
+        it(`can match and extract "${p}" (round-trip encoding)`, () => {
+          subject = new Rule('asset', { requiredParams: [] })
 
-        const uri = canonicalUri({ uri: 'asset', params: { store: 'a&p' } })
-        expect(subject.params(uri)).toEqual({ store: 'a&p' })
+          const uri = canonicalUri({ uri: 'asset', params: { k: p } })
+          expect(subject.params(uri)).toEqual({ k: p.toString() })
+        })
       })
 
-      it('can include = + / etc.', () => {
-        subject = new Rule('asset', { requiredParams: [] })
-
-        const uri = canonicalUri({ uri: 'asset', params: { equation: 'a=b+c/d*2' } })
-        expect(subject.params(uri)).toEqual({ equation: 'a=b+c/d*2' })
-      })
     })
 
     it('raises exception if cannot find matcher', () => {
