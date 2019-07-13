@@ -5,7 +5,9 @@ import Rules from './Rules'
 import {
   asArray,
 }            from './util'
-
+import {
+  canonicalUri
+} from './canonicalUri'
 
 const defaultOptions = {
   console: window.console,
@@ -139,8 +141,10 @@ export class DataLackey {
 
   // Load a given URI, returning a promise.
   // If already loaded or in progress, returns existing promise.
-  load (jobURI, loadOptions) {
-    if (Array.isArray(jobURI)) return Promise.all(jobURI.filter(u => u).map(u => this.load(u)))
+  load (uriish, loadOptions) {
+    if (Array.isArray(uriish)) return Promise.all(uriish.filter(u => u).map(u => this.load(u)))
+
+    const jobURI = canonicalUri(uriish)
 
     // If a URL resolves to "undefined" or "null", it was likely a mistake. Highlight it in the console.
     this.options.console[(jobURI.includes('undefined') || jobURI.includes('null')) ? 'error' : 'log'](`${this.JOBS.job(jobURI) && this.JOBS.job(jobURI).loaded ? '  cache hit for' : 'load'} "${jobURI}"`)
