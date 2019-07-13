@@ -1,35 +1,16 @@
-import UrlPattern from 'url-pattern'
 
-import {
-  asArray,
-} from './util'
-
+import { asArray } from './util'
 
 export default class Rule {
 
-  constructor (pattern, ruleOptions, console) {
-    const patternOptsForStrings = {
-      segmentNameStartChar: '$',
-      segmentValueCharset:  'a-zA-Z0-9\\-,_%~\\.!\\*\\(\\)',
-      ...(ruleOptions.patternOpts || {}),
-    }
-
-    if (typeof (pattern) === 'string' && ruleOptions.requiredParams) {
-      if (ruleOptions.requiredParams.length)
-        pattern += '\\?.*' + ruleOptions.requiredParams.sort().map(p => `\\b${p}=.*`).join('&')
-      pattern = new RegExp(`^${pattern}`)
-    }
-
-    this.matcher     = new UrlPattern(pattern,
-                                      typeof (pattern) === 'string'
-                                      ? patternOptsForStrings
-                                      : ruleOptions.groupNames)
+  constructor (matcher, ruleOptions, console) {
+    this.matcher     = matcher
     this.ruleOptions = ruleOptions
     this.console     = console
   }
 
   matches (jobURI) {
-    return this.matcher.match(jobURI)
+    return this.matcher.matches(jobURI)
   }
 
   /**
@@ -43,14 +24,7 @@ export default class Rule {
    *   of values captured.
    */
   params (jobURI) {
-    const p = this.matcher.match(jobURI)
-    if (!p) throw `possible bug: pattern found but does not match jobURI ${jobURI}`
-
-    if (!this.ruleOptions.requiredParams)
-      return p // whatever the match returns we pass as params
-
-    // requiredParams case
-    return jobURI.split('?')[1].split('&').map(e => e.split('=')).reduce((m, s) => (m[s[0]] = decodeURIComponent(s[1]), m), {})
+    return this.matcher.params(jobURI)
   }
 
   /**
@@ -89,6 +63,6 @@ export default class Rule {
       .then(p => (this.console.log(`  ${dependencyURIs.length} dependencies loaded.`), p))
       .then(rawLoader)
   }
-
-
 }
+
+

@@ -4,7 +4,7 @@ import {
 }                  from './canonicalUri'
 import Job         from './Job'
 import Jobs        from './Jobs'
-import Rule        from './Rule'
+import ruleFactory from './ruleFactory'
 import Rules       from './Rules'
 import { asArray } from './util'
 
@@ -31,7 +31,7 @@ export class DataLackey {
   }
 
   rule (patterns, ruleOptions) {
-    asArray(patterns).forEach(pattern => this.RULES.push(new Rule(pattern, ruleOptions, this.console)))
+    asArray(patterns).forEach(pattern => this.RULES.push(ruleFactory(pattern, ruleOptions, this.console)))
   }
 
   loading (...uris) {
@@ -83,9 +83,9 @@ export class DataLackey {
   load (urish, loadOptions) {
     if (Array.isArray(urish)) return Promise.all(urish.filter(u => u).map(u => this.load(u)))
 
-    const jobURI = canonicalUri(urish),
+    const jobURI      = canonicalUri(urish),
 
-    existingJob = this.job(jobURI)
+          existingJob = this.job(jobURI)
     if (existingJob) this.console.log(`  cache hit for ${jobURI}`)
     if (existingJob) return existingJob.promise
 

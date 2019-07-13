@@ -1,7 +1,7 @@
 /* eslint-env jest */
 
 import { canonicalUri } from './canonicalUri'
-import Rule             from './Rule'
+import ruleFactory      from './ruleFactory'
 
 
 describe('Rule', () => {
@@ -10,7 +10,7 @@ describe('Rule', () => {
   describe('.matcher', () => {
     describe('initialized with path string', () => {
       beforeEach(() => {
-        subject = new Rule('/foo/$key', {})
+        subject = ruleFactory('/foo/$key', {})
       })
 
       it('matches', () => {
@@ -25,7 +25,7 @@ describe('Rule', () => {
 
     describe('initialized with string', () => {
       beforeEach(() => {
-        subject = new Rule('/foo$key', {})
+        subject = ruleFactory('/foo$key', {})
       })
 
       it('matches', () => {
@@ -36,7 +36,7 @@ describe('Rule', () => {
 
     describe('initialized with regexp', () => {
       beforeEach(() => {
-        subject = new Rule(/\/foo(\d+)/, {})
+        subject = ruleFactory(/\/foo(\d+)/, {})
       })
 
       it('matches', () => {
@@ -50,7 +50,7 @@ describe('Rule', () => {
 
     describe('initialized with regexp and groupNames', () => {
       beforeEach(() => {
-        subject = new Rule(/\/foo(\d+)\/(.*)/, { groupNames: ['i', 'z'] })
+        subject = ruleFactory(/\/foo(\d+)\/(.*)/, { groupNames: ['i', 'z'] })
       })
 
       it('matches', () => {
@@ -64,7 +64,7 @@ describe('Rule', () => {
 
     describe('initialized with uri and requiredParams', () => {
       beforeEach(() => {
-        subject = new Rule('/asset', { requiredParams: ['i', 'z'] })
+        subject = ruleFactory('/asset', { requiredParams: ['i', 'z'] })
       })
 
       it('matches', () => {
@@ -84,7 +84,7 @@ describe('Rule', () => {
       })
 
       it('can be initialized with no requiredParams', () => {
-        subject = new Rule('asset', { requiredParams: [] })
+        subject = ruleFactory('asset', { requiredParams: [] })
         expect(subject.matches('asset')).toBeTruthy()
         expect(subject.matches('asset?i=foo')).toBeTruthy()
       })
@@ -92,7 +92,7 @@ describe('Rule', () => {
 
     describe('overriding segment values', () => {
       beforeEach(() => {
-        subject = new Rule('/foo/:key', {
+        subject = ruleFactory('/foo/:key', {
           patternOpts: {
             segmentNameStartChar: ':',
             segmentValueCharset:  '\\d',
@@ -113,20 +113,20 @@ describe('Rule', () => {
 
   describe('params', () => {
     it('returns an object of matching params', () => {
-      subject = new Rule('/$a-$b-$c', {})
+      subject = ruleFactory('/$a-$b-$c', {})
 
       expect(subject.params('/foo-bar-baz')).toEqual({ a: 'foo', b: 'bar', c: 'baz' })
     })
 
     it('returns an Array of matching params', () => {
-      subject = new Rule(/(\w+)\s(\d+)/, {})
+      subject = ruleFactory(/(\w+)\s(\d+)/, {})
 
       expect(subject.params('foo 39')).toEqual(['foo', '39'])
     })
 
     describe('initialized with regexp', () => {
       it('matches', () => {
-        subject = new Rule(/\/foo(\d+)/, {})
+        subject = ruleFactory(/\/foo(\d+)/, {})
 
         expect(subject.params('/foo78')).toEqual(['78'])
       })
@@ -134,7 +134,7 @@ describe('Rule', () => {
 
     describe('initialized with regexp and groupNames', () => {
       it('matches', () => {
-        subject = new Rule(/\/foo(\d+)\/(.*)/, { groupNames: ['i', 'z'] })
+        subject = ruleFactory(/\/foo(\d+)\/(.*)/, { groupNames: ['i', 'z'] })
 
         expect(subject.params('/foo78/boo')).toEqual({ i: '78', z: 'boo' })
       })
@@ -142,7 +142,7 @@ describe('Rule', () => {
 
     describe('initialized with uri and requiredParams', () => {
       beforeEach(() => {
-        subject = new Rule('/asset', { requiredParams: ['i', 'z'] })
+        subject = ruleFactory('/asset', { requiredParams: ['i', 'z'] })
       })
 
       it('returns params', () => {
@@ -158,13 +158,13 @@ describe('Rule', () => {
       })
 
       it('can be initialized with no requiredParams', () => {
-        subject = new Rule('/asset', { requiredParams: [] })
+        subject = ruleFactory('/asset', { requiredParams: [] })
         expect(subject.params('/asset?i=foo')).toEqual({ 'i': 'foo' })
       })
 
       ;[8, 'word', 'two words', 'ampersand a&p', 'a=b+c/d*2'].forEach(p => {
         it(`can match and extract "${p}" (round-trip encoding)`, () => {
-          subject = new Rule('asset', { requiredParams: [] })
+          subject = ruleFactory('asset', { requiredParams: [] })
 
           const uri = canonicalUri({ uri: 'asset', params: { k: p } })
           expect(subject.params(uri)).toEqual({ k: p.toString() })
@@ -174,7 +174,7 @@ describe('Rule', () => {
     })
 
     it('raises exception if cannot find matcher', () => {
-      subject = new Rule('/$a-$b-$c', {})
+      subject = ruleFactory('/$a-$b-$c', {})
 
       expect(() => {
         subject.params('nada-match')
@@ -186,7 +186,7 @@ describe('Rule', () => {
   describe('rawLoaderPromise', () => {
     it('calls loader with object', () => {
       const loader = jest.fn()
-      subject      = new Rule('a', { loader: loader })
+      subject      = ruleFactory('a', { loader: loader })
       const params = { a: 'b' }
 
       subject.rawLoaderPromise(params)
@@ -196,7 +196,7 @@ describe('Rule', () => {
 
     it('spreads Array params', () => {
       const loader = jest.fn()
-      subject      = new Rule('a', { loader: loader })
+      subject      = ruleFactory('a', { loader: loader })
       const params = ['a', 'b']
 
       subject.rawLoaderPromise(params)
@@ -208,30 +208,30 @@ describe('Rule', () => {
 
   describe('dependenciesAsURIs', () => {
     it('returns empty array if no dependsOn', () => {
-      subject = new Rule('a', {})
+      subject = ruleFactory('a', {})
 
       expect(subject.dependenciesAsURIs()).toEqual([])
     })
     it('returns string', () => {
-      subject = new Rule('a', { dependsOn: 'foo' })
+      subject = ruleFactory('a', { dependsOn: 'foo' })
 
       expect(subject.dependenciesAsURIs()).toEqual(['foo'])
     })
     it('returns result of function', () => {
-      subject = new Rule('a', { dependsOn: () => 'foo' })
+      subject = ruleFactory('a', { dependsOn: () => 'foo' })
 
       expect(subject.dependenciesAsURIs()).toEqual(['foo'])
     })
     it('passes params to function', () => {
       const dependsOn = jest.fn()
-      subject         = new Rule('a', { dependsOn })
+      subject         = ruleFactory('a', { dependsOn })
 
       subject.dependenciesAsURIs('foo')
 
       expect(dependsOn).toHaveBeenCalledWith('foo')
     })
     it('returns multiple', () => {
-      subject = new Rule('a', { dependsOn: ['foo', 'bar'] })
+      subject = ruleFactory('a', { dependsOn: ['foo', 'bar'] })
 
       expect(subject.dependenciesAsURIs()).toEqual(['foo', 'bar'])
     })
