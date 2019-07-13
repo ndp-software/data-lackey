@@ -6,6 +6,7 @@ const DEFAULT_PATTERN_OPTS = {
   segmentValueCharset:  'a-zA-Z0-9\\-,_%~\\.!\\*\\(\\)',
 }
 
+// Matchers that use the `UrlPattern` library directly
 class BaseUrlPatternMatcher {
 
   constructor (urlPattern) {
@@ -41,10 +42,20 @@ export class RegExpMatcher extends BaseUrlPatternMatcher {
   }
 }
 
+/*
+In this matcher, a pattern is simple string that must be matched at the beginning
+to apply the rule. eg. `/posts` `users`.
+
+It can also have "required" params, in which case we build a regular expression that
+looks for those urls, ie. `/posts` with an `id` parameter would have a regular expression
+ of `^/posts?.*\bid=.*`.
+
+The job URI is built by alphabetically appending the params as query parameters.
+ */
 export class UriWithParamsMatcher {
-  constructor (pattern, ruleOptions) {
-    if (ruleOptions.requiredParams.length)
-      pattern += '\\?.*' + ruleOptions.requiredParams.sort().map(p => `\\b${p}=.*`).join('&')
+  constructor (pattern, requiredParams) {
+    if (requiredParams.length)
+      pattern += '\\?.*' + requiredParams.sort().map(p => `\\b${p}=.*`).join('&')
 
     this.regExp = new RegExp(`^${pattern}`)
   }

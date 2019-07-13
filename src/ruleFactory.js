@@ -10,7 +10,7 @@ export default function ruleFactory (pattern, ruleOptions, console) {
 
   let matcher
   if (isString && ruleOptions.requiredParams)
-    matcher = new UriWithParamsMatcher(pattern, ruleOptions)
+    matcher = new UriWithParamsMatcher(pattern, ruleOptions.requiredParams)
   else if (isString)
     matcher = new ParameterizedStringMatcher(pattern, ruleOptions)
   else
