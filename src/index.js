@@ -1,4 +1,4 @@
-export { DataLackey } from './core'
+export { DataLackey } from './api'
 export { Provider } from './Provider'
 export { loadData } from './HOC'
 export { createLoaderComponent } from './component'

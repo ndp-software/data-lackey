@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import { DataLackey }          from './core'
+import { DataLackey }          from './api'
 import createLackeyWithLoaders from './example'
 
 describe('DataLackey', () => {

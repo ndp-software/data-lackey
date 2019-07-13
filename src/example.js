@@ -6,7 +6,7 @@ Example of how you would specify data dependencies.
 
  */
 
-import { DataLackey } from './core'
+import { DataLackey } from './api'
 
 export default function createLackeyWithLoaders (loaders, options = { console: false}) {
 

@@ -1,6 +1,6 @@
 /* eslint-disable promise/avoid-new,promise/catch-or-return */
 /* eslint-env jest */
-import { DataLackey }       from './core'
+import { DataLackey }       from './api'
 import { waitForAssertion } from './jest/waitForAssertion'
 
 
