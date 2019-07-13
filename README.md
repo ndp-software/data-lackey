@@ -15,8 +15,8 @@ With Data Lackey:
 * reload data at periodic intervals (poll)
 * expire data / support a ttl (time to live) for individual pieces of data
 
-<a href="https://codeclimate.com/github/Verba/data-lackey/maintainability"><img src="https://api.codeclimate.com/v1/badges/562327499c13db5defe0/maintainability" /></a> | [![CircleCI](https://circleci.com/gh/Verba/data-lackey/tree/master.svg?style=svg&circle-token=e5e3ede09f04662995e99094b75e6a0c84914c1a)](https://circleci.com/gh/Verba/data-lackey/tree/master)
- | <a href="https://codeclimate.com/github/Verba/data-lackey/test_coverage"><img src="https://api.codeclimate.com/v1/badges/562327499c13db5defe0/test_coverage" /></a>
+ [![CircleCI](https://circleci.com/gh/Verba/data-lackey/tree/master.svg?style=svg&circle-token=e5e3ede09f04662995e99094b75e6a0c84914c1a)](https://circleci.com/gh/Verba/data-lackey/tree/master) <a href="https://codeclimate.com/github/Verba/data-lackey/maintainability"><img src="https://api.codeclimate.com/v1/badges/562327499c13db5defe0/maintainability" /></a> 
+  <a href="https://codeclimate.com/github/Verba/data-lackey/test_coverage"><img src="https://api.codeclimate.com/v1/badges/562327499c13db5defe0/test_coverage" /></a>
 
 ## Installation & Basic Usage
 
