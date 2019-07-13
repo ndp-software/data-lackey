@@ -33,6 +33,8 @@ export class DataLackey {
 
     this.pollNow = this.pollNow.bind(this)
     this.pollNow() // start polling
+
+    this.load = this.load.bind(this)
   }
 
   pollNow () {
@@ -116,29 +118,6 @@ export class DataLackey {
     return this.JOBS.inspect()
   }
 
-
-  // Serially resolve dependencies
-  promiseForDependencies (dependencyURIs) {
-    this.options.console.log(`  checking dependencies (${dependencyURIs.length})...`)
-    return Promise.all(dependencyURIs
-                         .map(dep => this.load(dep)))
-                  .then(p => {
-                    this.options.console.log(`  ${dependencyURIs.length} dependencies loaded.`)
-                    return p
-                  })
-  }
-
-  // Given a pattern's `options`, start the loader function and return a
-  // record to track its status, including a `.promise` property.
-  promiseForURIAndDependencies (jobURI, rule) {
-    const params         = rule.params(jobURI),
-          dependencyURIs = rule.dependenciesAsURIs(params)
-
-    return (dependencyURIs.length === 0)
-           ? rule.rawLoaderPromise(params)
-           : this.promiseForDependencies(dependencyURIs).then(() => rule.rawLoaderPromise(params))
-  }
-
   // Load a given URI, returning a promise.
   // If already loaded or in progress, returns existing promise.
   load (uriish, loadOptions) {
@@ -154,7 +133,7 @@ export class DataLackey {
       const rule = this.RULES.findMatchingRule(jobURI)
       if (!rule) throw `Unmatched URI "${jobURI}"`
 
-      const loader = this.promiseForURIAndDependencies.bind(this, jobURI, rule)
+      const loader = rule.promiseForURIAndDependencies.bind(rule, jobURI, this.load)
       this.JOBS.setJob(jobURI, new Job(jobURI,
                                        loader,
                                        {
