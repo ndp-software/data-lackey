@@ -7,7 +7,7 @@ import {
 
 export default class Rule {
 
-  constructor (pattern, ruleOptions) {
+  constructor (pattern, ruleOptions, console) {
     const patternOptsForStrings = {
       segmentNameStartChar: '$',
       segmentValueCharset:  'a-zA-Z0-9\\-,_%~\\.!\\*\\(\\)',
@@ -19,6 +19,7 @@ export default class Rule {
                                     ? patternOptsForStrings
                                     : undefined)
     this.ruleOptions = ruleOptions
+    this.console     = console
   }
 
   matches (jobURI) {

@@ -51,7 +51,7 @@ export class DataLackey {
   }
 
   rule (patterns, ruleOptions) {
-    asArray(patterns).forEach(pattern => this.RULES.push(new Rule(pattern, ruleOptions)))
+    asArray(patterns).forEach(pattern => this.RULES.push(new Rule(pattern, ruleOptions, this.options.console)))
   }
 
   // Are any of the given URLs loading?
