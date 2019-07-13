@@ -14,10 +14,10 @@ export default class Rule {
       ...(ruleOptions.patternOpts || {}),
     }
 
-    this.matcher = new UrlPattern(pattern,
-                                  typeof(pattern) === 'string'
-                                    ? patternOptsForStrings
-                                    : undefined)
+    this.matcher     = new UrlPattern(pattern,
+                                      typeof(pattern) === 'string'
+                                      ? patternOptsForStrings
+                                      : undefined)
     this.ruleOptions = ruleOptions
     this.console     = console
   }
@@ -59,10 +59,25 @@ export default class Rule {
    * @param params
    * @returns {*}
    */
-  dependenciesAsURIs(params) {
+  dependenciesAsURIs (params) {
     const deps = asArray(this.ruleOptions.dependsOn || [])
     return deps.map(dep => typeof(dep) === 'function' ? dep(...asArray(params)) : dep)
-
   }
+
+  // Given a pattern's `options`, start the loader function and return a
+  // record to track its status, including a `.promise` property.
+  promiseForURIAndDependencies (jobURI, load) {
+    const params         = this.params(jobURI),
+          rawLoader      = this.rawLoaderPromise.bind(this, params),
+          dependencyURIs = this.dependenciesAsURIs(params)
+
+    if (dependencyURIs.length === 0) return rawLoader()
+
+    this.console.log(`  checking dependencies (${dependencyURIs.length})...`)
+    return load(dependencyURIs)
+      .then(p => (this.console.log(`  ${dependencyURIs.length} dependencies loaded.`), p))
+      .then(rawLoader)
+  }
+
 
 }
