@@ -61,7 +61,8 @@ export default class Job {
     this.reloadTimeoutId = window.setTimeout(this.reloadAgain, this.options.reloadInterval)
   }
 
-  /* private */ reloadAgain() {
+  /* private */
+  reloadAgain () {
     this.reloadTimeoutId = null
     this.reload()
   }
@@ -72,7 +73,7 @@ export default class Job {
     this.reloading = false
     this.loaded    = false
     this.failed    = true
-    this.error = e
+    this.error     = e
   }
 
   onUnload () {

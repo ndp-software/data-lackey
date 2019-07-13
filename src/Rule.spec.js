@@ -159,20 +159,20 @@ describe('Rule', () => {
 
       it('can be initialized with no requiredParams', () => {
         subject = new Rule('/asset', { requiredParams: [] })
-        expect(subject.params('/asset?i=foo')).toEqual({ "i": "foo" })
+        expect(subject.params('/asset?i=foo')).toEqual({ 'i': 'foo' })
       })
 
       it('can include ampersand', () => {
         subject = new Rule('asset', { requiredParams: [] })
 
-        const uri = canonicalUri({ uri: 'asset', params: { store: 'a&p' }})
+        const uri = canonicalUri({ uri: 'asset', params: { store: 'a&p' } })
         expect(subject.params(uri)).toEqual({ store: 'a&p' })
       })
 
       it('can include = + / etc.', () => {
         subject = new Rule('asset', { requiredParams: [] })
 
-        const uri = canonicalUri({ uri: 'asset', params: { equation: 'a=b+c/d*2' }})
+        const uri = canonicalUri({ uri: 'asset', params: { equation: 'a=b+c/d*2' } })
         expect(subject.params(uri)).toEqual({ equation: 'a=b+c/d*2' })
       })
     })

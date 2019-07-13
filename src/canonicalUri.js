@@ -19,6 +19,6 @@ function buildParams (uriBase, params) {
 
 }
 
-export function sketchyUri(uri) {
+export function sketchyUri (uri) {
   return uri.includes('undefined') || uri.includes('null')
 }

@@ -1,4 +1,3 @@
-/* eslint-disable promise/avoid-new */
 /* eslint-env jest */
 
 import Job from './Job'

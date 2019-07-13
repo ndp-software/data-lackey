@@ -1,3 +1,4 @@
+/* eslint-env jest */
 import {
   canonicalUri as subject,
 } from './canonicalUri'

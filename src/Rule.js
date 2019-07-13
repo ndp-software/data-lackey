@@ -72,7 +72,7 @@ export default class Rule {
    */
   dependenciesAsURIs (params) {
     const deps = asArray(this.ruleOptions.dependsOn || [])
-    return deps.map(dep => typeof (dep) === 'function' ? dep(...asArray(params)) : dep)
+    return deps.map(dep => (typeof (dep) === 'function' ? dep(...asArray(params)) : dep))
   }
 
   // Given a pattern's `options`, start the loader function and return a

@@ -43,16 +43,16 @@ describe('asMatchFn', () => {
   })
 
   describe('given a regular expression', () => {
-    const URI   = 'dl:test-123/456'
+    const URI = 'dl:test-123/456'
 
     it('does not return URI if fn returns false', () => {
       expect(subject.asMatchFn(/x93fk/)(URI)).toEqual(null)
     })
 
     it('returns params if matches', () => {
-      const regEx = /test-(\d+)\/(\d+)/
+      const regEx     = /test-(\d+)\/(\d+)/,
+            matchData = subject.asMatchFn(regEx)(URI)
 
-      const matchData = subject.asMatchFn(regEx)(URI)
       expect(matchData[0]).toEqual('test-123/456')
       expect(matchData[1]).toEqual('123')
       expect(matchData[2]).toEqual('456')

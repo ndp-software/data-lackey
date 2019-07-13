@@ -5,8 +5,8 @@ import PropTypes from 'prop-types'
 // eslint-disable-next-line no-unused-vars
 import Provider  from './Provider'
 import {
-  shallow,
   mount,
+  shallow,
 }                from 'enzyme'
 
 describe('Provider', () => {

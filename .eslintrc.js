@@ -21,21 +21,15 @@ module.exports = {
     'standard',
     'no-only-tests',
   ],
-  settings: {
+  settings:        {
     "import/resolver": {
       "babel-module": {},
     },
-    // "react"          : {
-    //   // "createClass": "createReactClass", // Regex for Component Factory to use, default to "createReactClass"
-    //   "pragma" : "React",  // Pragma to use, default to "React"
-    //   "version": "15.4" // React version, default to the latest React stable release
-    // }
   },
   'rules':         {
+    'array-bracket-spacing':             ['error', 'never'],
     'arrow-parens':                      [2, 'as-needed'],
-    'babel/new-cap':                     [0],
-    'babel/array-bracket-spacing':       [0],
-    'babel/object-curly-spacing':        [0],
+    'babel/object-curly-spacing':        ['error', 'always', { "objectsInObjects": true }],
     'camelcase':                         ['error'],
     'comma-dangle':                      [0],
     'complexity':                        ['error', 14],
@@ -49,23 +43,28 @@ module.exports = {
     'indent':                            [0, 2],
     'linebreak-style':                   ['error', 'unix'],
     'max-params':                        ['error', 3],
-    'new-cap':                           [0],
-    'no-await-in-loop':                  [1],
-    'no-confusing-arrow':                [0],
+    'new-cap':                           ['error'],
+    'no-await-in-loop':                  ['error'],
+    'no-confusing-arrow':                ['error'],
     'no-console':                        [2],
-    'no-constant-condition':             ['off'],
     'no-duplicate-imports':              ['error'],
     'no-for-of-loops/no-for-of-loops':   ['error'],
     'no-negated-condition':              ['error'],
     'no-only-tests/no-only-tests':       ['error'],
+    'no-shadow':                         ['error'],
     'no-useless-rename':                 ['error'],
     'no-unused-vars':                    ['error', { args: 'all', argsIgnorePattern: '^_' }],
     'no-var':                            ['error'],
+    'one-var':                           ['error', 'consecutive'],
+    'operator-assignment':               ['error', 'always'],
+    'operator-linebreak':                ['error', 'before'],
     'prefer-const':                      ['error'],
+    'prefer-object-spread':              ['error'],
     'prefer-rest-params':                ['error'],
     'prefer-spread':                     ['error'],
     'quotes':                            ['error', 'single'],
     'semi':                              ['error', 'never'],
+    'space-before-function-paren':       ['error', 'always'],
   },
   'globals':       {
     'console': true,

@@ -4,11 +4,11 @@
  *    regex    -- function that matches string by calling the `match` function
  */
 export const asMatchFn = matcher => {
-  return typeof(matcher) === 'function'
-    ? matcher
-    : typeof(matcher) === 'string'
-      ? (uri => matcher === uri)
-      : (uri => uri.match(matcher))
+  return typeof (matcher) === 'function'
+         ? matcher
+         : typeof (matcher) === 'string'
+           ? (uri => matcher === uri)
+           : (uri => uri.match(matcher))
 }
 
 
@@ -20,11 +20,11 @@ export function flatMap (array, callback) {
   return [].concat(...array.map(callback))
 }
 
-export function isNumeric(value /*: any*/)/*: boolean*/ {
+export function isNumeric (value /*: any*/)/*: boolean*/ {
   return !isNaN(value - parseFloat(value))
 }
 
-export function arraysEqual(a, b) {
+export function arraysEqual (a, b) {
   if (a === b) return true
   if (a == null || b == null) return false
   if (a.length !== b.length) return false

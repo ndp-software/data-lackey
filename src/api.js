@@ -8,10 +8,6 @@ import Rule        from './Rule'
 import Rules       from './Rules'
 import { asArray } from './util'
 
-const defaultOptions = {
-  console: window.console,
-}
-
 export class DataLackey {
 
   // Options:
@@ -87,17 +83,16 @@ export class DataLackey {
   load (urish, loadOptions) {
     if (Array.isArray(urish)) return Promise.all(urish.filter(u => u).map(u => this.load(u)))
 
-    const jobURI = canonicalUri(urish)
+    const jobURI = canonicalUri(urish),
 
-    // If a URL resolves to "undefined" or "null", it was likely a mistake. Highlight it in the console.
-    const existingJob = this.job(jobURI)
-
+    existingJob = this.job(jobURI)
     if (existingJob) this.console.log(`  cache hit for ${jobURI}`)
     if (existingJob) return existingJob.promise
 
     const rule = this.RULES.findMatchingRule(jobURI)
     if (!rule) throw `Unmatched URI "${jobURI}"`
 
+    // If a URL resolves to "undefined" or "null", it was likely a mistake. Highlight it.
     this.console[sketchyUri(jobURI) ? 'error' : 'log'](`load "${jobURI}"`)
     const newJob = new Job(jobURI,
                            rule.promiseForURIAndDependencies.bind(rule, jobURI, this.load),
