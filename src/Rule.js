@@ -14,10 +14,16 @@ export default class Rule {
       ...(ruleOptions.patternOpts || {}),
     }
 
+    if (typeof (pattern) === 'string' && ruleOptions.requiredParams) {
+      if (ruleOptions.requiredParams.length)
+        pattern += '\\?.*' + ruleOptions.requiredParams.sort().map(p => `\\b${p}=.*`).join('&')
+      pattern = new RegExp(`^${pattern}`)
+    }
+
     this.matcher     = new UrlPattern(pattern,
-                                      typeof(pattern) === 'string'
+                                      typeof (pattern) === 'string'
                                       ? patternOptsForStrings
-                                      : undefined)
+                                      : ruleOptions.groupNames)
     this.ruleOptions = ruleOptions
     this.console     = console
   }
@@ -39,7 +45,12 @@ export default class Rule {
   params (jobURI) {
     const p = this.matcher.match(jobURI)
     if (!p) throw `possible bug: pattern found but does not match jobURI ${jobURI}`
-    return p // whatever the match returns we pass as params
+
+    if (!this.ruleOptions.requiredParams)
+      return p // whatever the match returns we pass as params
+
+    // requiredParams case
+    return jobURI.split('?')[1].split('&').map(e => e.split('=')).reduce((m, s) => (m[s[0]] = decodeURIComponent(s[1]), m), {})
   }
 
   /**
@@ -61,7 +72,7 @@ export default class Rule {
    */
   dependenciesAsURIs (params) {
     const deps = asArray(this.ruleOptions.dependsOn || [])
-    return deps.map(dep => typeof(dep) === 'function' ? dep(...asArray(params)) : dep)
+    return deps.map(dep => typeof (dep) === 'function' ? dep(...asArray(params)) : dep)
   }
 
   // Given a pattern's `options`, start the loader function and return a

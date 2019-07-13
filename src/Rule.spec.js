@@ -1,6 +1,7 @@
 /* eslint-env jest */
 
-import Rule from './Rule'
+import { canonicalUri } from './canonicalUri'
+import Rule             from './Rule'
 
 
 describe('Rule', () => {
@@ -47,6 +48,48 @@ describe('Rule', () => {
       })
     })
 
+    describe('initialized with regexp and groupNames', () => {
+      beforeEach(() => {
+        subject = new Rule(/\/foo(\d+)\/(.*)/, { groupNames: ['i', 'z'] })
+      })
+
+      it('matches', () => {
+        expect(subject.matches('/foo78/boo')).toBeTruthy()
+      })
+
+      it('does not match', () => {
+        expect(subject.matches('/food78')).toBeFalsy()
+      })
+    })
+
+    describe('initialized with uri and requiredParams', () => {
+      beforeEach(() => {
+        subject = new Rule('/asset', { requiredParams: ['i', 'z'] })
+      })
+
+      it('matches', () => {
+        expect(subject.matches('/asset?i=foo&z=bar')).toBeTruthy()
+      })
+
+      it('matches if extra params', () => {
+        expect(subject.matches('/asset?i=foo&k=baz&z=bar')).toBeTruthy()
+      })
+
+      it('matches if extra params at beginning', () => {
+        expect(subject.matches('/asset?a=z&i=foo&k=baz&z=bar')).toBeTruthy()
+      })
+
+      it('does not match if missing a param', () => {
+        expect(subject.matches('/asset?i=foo')).toBeFalsy()
+      })
+
+      it('can be initialized with no requiredParams', () => {
+        subject = new Rule('asset', { requiredParams: [] })
+        expect(subject.matches('asset')).toBeTruthy()
+        expect(subject.matches('asset?i=foo')).toBeTruthy()
+      })
+    })
+
     describe('overriding segment values', () => {
       beforeEach(() => {
         subject = new Rule('/foo/:key', {
@@ -81,6 +124,59 @@ describe('Rule', () => {
       expect(subject.params('foo 39')).toEqual(['foo', '39'])
     })
 
+    describe('initialized with regexp', () => {
+      it('matches', () => {
+        subject = new Rule(/\/foo(\d+)/, {})
+
+        expect(subject.params('/foo78')).toEqual(['78'])
+      })
+    })
+
+    describe('initialized with regexp and groupNames', () => {
+      it('matches', () => {
+        subject = new Rule(/\/foo(\d+)\/(.*)/, { groupNames: ['i', 'z'] })
+
+        expect(subject.params('/foo78/boo')).toEqual({ i: '78', z: 'boo' })
+      })
+    })
+
+    describe('initialized with uri and requiredParams', () => {
+      beforeEach(() => {
+        subject = new Rule('/asset', { requiredParams: ['i', 'z'] })
+      })
+
+      it('returns params', () => {
+        expect(subject.params('/asset?i=foo&z=bar')).toEqual({ i: 'foo', z: 'bar' })
+      })
+
+      it('returns params if extra params', () => {
+        expect(subject.params('/asset?i=foo&k=baz&z=bar')).toEqual({ i: 'foo', k: 'baz', z: 'bar' })
+      })
+
+      it('returns params if extra params at beginning', () => {
+        expect(subject.params('/asset?a=z&i=foo&k=baz&z=bar')).toEqual({ a: 'z', i: 'foo', k: 'baz', z: 'bar' })
+      })
+
+      it('can be initialized with no requiredParams', () => {
+        subject = new Rule('/asset', { requiredParams: [] })
+        expect(subject.params('/asset?i=foo')).toEqual({ "i": "foo" })
+      })
+
+      it('can include ampersand', () => {
+        subject = new Rule('asset', { requiredParams: [] })
+
+        const uri = canonicalUri({ uri: 'asset', params: { store: 'a&p' }})
+        expect(subject.params(uri)).toEqual({ store: 'a&p' })
+      })
+
+      it('can include = + / etc.', () => {
+        subject = new Rule('asset', { requiredParams: [] })
+
+        const uri = canonicalUri({ uri: 'asset', params: { equation: 'a=b+c/d*2' }})
+        expect(subject.params(uri)).toEqual({ equation: 'a=b+c/d*2' })
+      })
+    })
+
     it('raises exception if cannot find matcher', () => {
       subject = new Rule('/$a-$b-$c', {})
 
@@ -94,7 +190,7 @@ describe('Rule', () => {
   describe('rawLoaderPromise', () => {
     it('calls loader with object', () => {
       const loader = jest.fn()
-      subject = new Rule('a', { loader: loader })
+      subject      = new Rule('a', { loader: loader })
       const params = { a: 'b' }
 
       subject.rawLoaderPromise(params)
@@ -104,7 +200,7 @@ describe('Rule', () => {
 
     it('spreads Array params', () => {
       const loader = jest.fn()
-      subject = new Rule('a', { loader: loader })
+      subject      = new Rule('a', { loader: loader })
       const params = ['a', 'b']
 
       subject.rawLoaderPromise(params)
@@ -132,16 +228,16 @@ describe('Rule', () => {
     })
     it('passes params to function', () => {
       const dependsOn = jest.fn()
-      subject = new Rule('a', { dependsOn })
+      subject         = new Rule('a', { dependsOn })
 
       subject.dependenciesAsURIs('foo')
 
       expect(dependsOn).toHaveBeenCalledWith('foo')
     })
     it('returns multiple', () => {
-      subject = new Rule('a', { dependsOn: ['foo','bar'] })
+      subject = new Rule('a', { dependsOn: ['foo', 'bar'] })
 
-      expect(subject.dependenciesAsURIs()).toEqual(['foo','bar'])
+      expect(subject.dependenciesAsURIs()).toEqual(['foo', 'bar'])
     })
 
   })

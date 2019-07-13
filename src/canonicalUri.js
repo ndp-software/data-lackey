@@ -14,7 +14,11 @@ function buildParams (uriBase, params) {
   return keys.reduce((uri, k) => {
     const parm = params[k]
     if (typeof (parm) === 'undefined') return uri
-    return `${uri}${k === keys[0] ? '?' : '&'}${k}${parm === null ? '' : `=${parm}`}`
+    return `${uri}${k === keys[0] ? '?' : '&'}${k}${parm === null ? '' : `=${encodeURIComponent(parm)}`}`
   }, uriBase)
 
+}
+
+export function sketchyUri(uri) {
+  return uri.includes('undefined') || uri.includes('null')
 }
