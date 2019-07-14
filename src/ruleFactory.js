@@ -1,9 +1,7 @@
 import Rule from './Rule'
-import {
-  StringPlusParamsPattern,
-  StringMatcher,
-  RegExpPattern,
-}           from './patterns'
+import StringPlusParamsPattern from './patterns/StringPlusParamsPattern'
+import StringMatcher from './patterns/StringMatcher'
+import RegExpPattern from './patterns/RegExpPattern'
 
 export default function ruleFactory (pattern, ruleOptions, console) {
   const isString = typeof (pattern) === 'string'
