@@ -1,47 +1,3 @@
-import UrlPattern from 'url-pattern'
-
-
-const DEFAULT_PATTERN_OPTS = {
-  segmentNameStartChar: '$',
-  segmentValueCharset:  'a-zA-Z0-9\\-,_%~\\.!\\*\\(\\)',
-}
-
-// Matchers that use the `UrlPattern` library directly
-class AbstractUrlPattern {
-
-  constructor (urlPattern) {
-    this.urlPattern = urlPattern
-  }
-
-  matches (jobURI) {
-    return this.urlPattern.match(jobURI)
-  }
-
-  params (jobURI) {
-    const p = this.urlPattern.match(jobURI)
-
-    if (!p) throw `possible bug: pattern found but does not match jobURI ${jobURI}`
-
-    return p // whatever the match returns we pass as params
-  }
-
-}
-
-export class StringMatcher extends AbstractUrlPattern {
-  constructor (pattern, patternOptOverrides) {
-    super(new UrlPattern(pattern,
-                         {
-                           ...DEFAULT_PATTERN_OPTS,
-                           ...(patternOptOverrides || {}),
-                         }))
-  }
-}
-
-export class RegExpPattern extends AbstractUrlPattern {
-  constructor (pattern, groupNames) {
-    super(new UrlPattern(pattern, groupNames))
-  }
-}
 
 /*
  In this matcher, a pattern is simple string that must be matched at the beginning
@@ -53,7 +9,7 @@ export class RegExpPattern extends AbstractUrlPattern {
 
  The job URI is built by alphabetically appending the params as query parameters.
  */
-export class StringPlusParamsPattern {
+export default class StringPlusParamsPattern {
 
   constructor (path, requiredParams) {
 
