@@ -1,9 +1,29 @@
+import { uriFromSpec } from './uriFromSpec'
+
+
+export function urisFromUriSpecs (uriSpecs) {
+  return asArray(uriSpecs).map(uriSpec => {
+    return uriFromSpec(uriSpec)
+  })
+}
+
+export function matcherFromJobMatchers (jobMatchers) {
+  const matchers = asArray(jobMatchers).map(m => asMatchFn(m))
+
+  return uri => matchers.reduce((m, f) => m || f(uri), false)
+}
+
+
 /** Returns a function given:
  *    function -- argument #1
  *    string   -- function that matches string on exact match
+ *    object   -- spec converted to uri
  *    regex    -- function that matches string by calling the `match` function
  */
 export const asMatchFn = matcher => {
+  if (typeof matcher === 'object' && matcher.constructor !== RegExp)
+    matcher = uriFromSpec(matcher)
+
   return typeof (matcher) === 'function'
          ? matcher
          : typeof (matcher) === 'string'
@@ -11,9 +31,12 @@ export const asMatchFn = matcher => {
            : (uri => uri.match(matcher))
 }
 
-
+// convert to array and flatten
+// TODO deeper flattening
 export function asArray (a) {
-  return Array.isArray(a) ? ((a.length === 1 && Array.isArray(a[0])) ? a[0] : a) : [a]
+  return Array.isArray(a)
+         ? ((a.length === 1 && Array.isArray(a[0])) ? a[0] : a)
+         : [a]
 }
 
 export function flatMap (array, callback) {

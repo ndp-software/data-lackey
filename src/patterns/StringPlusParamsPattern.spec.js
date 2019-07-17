@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { canonicalUri }        from '../canonicalUri'
+import { uriFromSpec }         from '../uriFromSpec'
 import StringPlusParamsPattern from './StringPlusParamsPattern'
 
 describe('StringPlusParamsPattern', () => {
@@ -25,6 +25,11 @@ describe('StringPlusParamsPattern', () => {
     it('handles extra params at beginning', () => {
       expect(subject.matches('/asset?a=z&i=foo&k=baz&z=bar')).toBeTruthy()
       expect(subject.params('/asset?a=z&i=foo&k=baz&z=bar')).toEqual({ a: 'z', i: 'foo', k: 'baz', z: 'bar' })
+    })
+
+    it('may not match', () => {
+      expect(subject.matches('asset')).toBeFalsy()
+      expect(() => subject.params('asset')).toThrow('possible bug: pattern found but does not match jobURI asset')
     })
 
     it('can be initialized with no requiredParams', () => {
@@ -54,10 +59,10 @@ describe('StringPlusParamsPattern', () => {
 
       beforeEach(() => {
         subject = new StringPlusParamsPattern('asset', [])
-        uri     = canonicalUri({ uri: 'asset', params: { k: p } })
+        uri     = uriFromSpec({ resource: 'asset', k: p })
       })
 
-      it(`"matches" ${canonicalUri({ uri: 'asset', params: { k: p } })}`, () => {
+      it(`"matches" ${uriFromSpec({ resource: 'asset', k: p })}`, () => {
         expect(subject.matches(uri)).toBeTruthy()
       })
 

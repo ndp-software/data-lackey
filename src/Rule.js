@@ -1,4 +1,4 @@
-
+import Job         from './Job'
 import { asArray } from './util'
 
 export default class Rule {
@@ -27,6 +27,21 @@ export default class Rule {
     return this.matcher.params(jobURI)
   }
 
+  newJob (uri, load, onLoad) {
+    const params         = this.params(uri),
+          dependencyURIs = this.dependenciesAsURIs(params),
+          rawLoader      = this.rawLoaderPromise.bind(this, params),
+          promise        = this.promiseForURIAndDependencies.bind(this, dependencyURIs, rawLoader, load)
+
+    return new Job(uri,
+                   promise,
+                   {
+                     console: this.console,
+                     onLoad:  onLoad,
+                     ...this.ruleOptions,
+                   })
+  }
+
   /**
    * Returns a promise by passing the matcher params
    * to the `loader` function. This is "raw" because it
@@ -51,10 +66,7 @@ export default class Rule {
 
   // Given a pattern's `options`, start the loader function and return a
   // record to track its status, including a `.promise` property.
-  promiseForURIAndDependencies (jobURI, load) {
-    const params         = this.params(jobURI),
-          rawLoader      = this.rawLoaderPromise.bind(this, params),
-          dependencyURIs = this.dependenciesAsURIs(params)
+  promiseForURIAndDependencies (dependencyURIs, rawLoader, load) {
 
     if (dependencyURIs.length === 0) return rawLoader()
 
@@ -62,6 +74,17 @@ export default class Rule {
     return load(dependencyURIs)
       .then(p => (this.console.log(`  ${dependencyURIs.length} dependencies loaded.`), p))
       .then(rawLoader)
+  }
+
+  // Given a pattern's `options`, start the loader function and return a
+  // record to track its status, including a `.promise` property.
+  promiseForDependencies (dependencyURIs, load) {
+
+    if (dependencyURIs.length === 0) return Promise.resolve()
+
+    this.console.log(`  checking dependencies (${dependencyURIs.length})...`)
+    return load(dependencyURIs)
+      .then(p => (this.console.log(`  ${dependencyURIs.length} dependencies loaded.`), p))
   }
 }
 

@@ -171,8 +171,9 @@ describe('DataLackey', function () {
 
         it('is ignored', () => {
 
-          subject.unload(URI, true)
+          const result = subject.unload(URI, true)
 
+          expect(result).toBe(false)
           expect(unloadFn).not.toBeCalled()
           expect(subject.loading(URI)).toBe(false)
           expect(subject.loaded(URI)).toBe(false)
@@ -185,8 +186,8 @@ describe('DataLackey', function () {
           expect(subject.loaded(URI)).toEqual(false)
 
           resultPromise = subject.load(URI)
-          expect(subject.loaded(URI)).toEqual(false)
           expect(subject.loading(URI)).toEqual(true)
+          expect(subject.loaded(URI)).toEqual(false)
 
           const unloaded = subject.unload(URI, true)
           expect(subject.loading(URI)).toEqual(true) // Don't abort
@@ -194,8 +195,8 @@ describe('DataLackey', function () {
           expect(unloadFn).not.toBeCalled()
           // Note: this could be done the other way. TODO discuss
         })
-
       })
+
       describe('after loading', () => {
         it('becomes dirty', async function () {
 

@@ -1,12 +1,12 @@
+import Jobs                        from './Jobs'
+import ruleFactory                 from './ruleFactory'
+import Rules                       from './Rules'
+import { sketchyUri, uriFromSpec } from './uriFromSpec'
 import {
-  canonicalUri,
-  sketchyUri,
-}                  from './canonicalUri'
-import Job         from './Job'
-import Jobs        from './Jobs'
-import ruleFactory from './ruleFactory'
-import Rules       from './Rules'
-import { asArray } from './util'
+  asArray,
+  urisFromUriSpecs,
+}                                  from './util'
+import { version }                 from '../package.json'
 
 export class DataLackey {
 
@@ -20,58 +20,61 @@ export class DataLackey {
     this.globalOnLoad  = null
     this.console       = { log, error }
     this.RULES         = new Rules(this.console)
-    this.JOBS          = new Jobs()
+    this.JOBS          = new Jobs(this.console)
     this.QUEUE         = []
     this.POLL_INTERVAL = 1000
 
-    this.pollNow = this.pollNow.bind(this)
-    this.pollNow() // start polling
+    this.console.log(`DataLackey ${version} starting up`)
+    window.lackey = this
 
-    this.load = this.load.bind(this)
+    this.load    = this.load.bind(this)
+    this.loadURI = this.loadURI.bind(this)
+    this.pollNow = this.pollNow.bind(this)
+
+    this.pollNow()
   }
 
   rule (patterns, ruleOptions) {
     asArray(patterns).forEach(pattern => this.RULES.push(ruleFactory(pattern, ruleOptions, this.console)))
   }
 
-  loading (...uris) {
-    return !!this.JOBS.any(uris, job => job.loading)
+
+  loading (...jobSpecs) {
+    return this.JOBS.jobsFromSpecs(jobSpecs).some(job => job.loading)
   }
 
-  reloading (...uris) {
-    return !!this.JOBS.any(uris, job => job.reloading)
+  reloading (...jobSpecs) {
+    return this.JOBS.jobsFromSpecs(jobSpecs).some(job => job.reloading)
   }
 
   // Are any of the given URLs failed?
-  failed (...uris) {
-    return !!this.JOBS.any(uris, job => job.failed)
+  failed (...jobSpecs) {
+    return this.JOBS.jobsFromSpecs(jobSpecs).some(job => job.failed)
   }
 
   // Are all of the given URLs loaded?
-  loaded (...uris) {
-    uris = asArray(uris) // accepts either multiple params or an array
-    // Are there unknown URLs? then they are _not_ loaded
-    if (uris.map(uri => this.JOBS.matchJobs(uri)).find(matchingJobs => matchingJobs.length === 0)) return false
-    return !!this.JOBS.matchJobs(uris)
-                 .reduce(((acc, uri) => acc && this.job(uri) && this.job(uri).loaded), this.JOBS.matchJobs(uris).length > 0)
+  loaded (...uriSpecs) {
+    const uris = urisFromUriSpecs(uriSpecs),
+          jobs = this.JOBS.jobs(uris)
+    if (jobs.length < uris.length) return false
+    return jobs.every(job => job.loaded)
   }
 
   job (jobURI) {
     return this.JOBS.job(jobURI)
   }
 
-  unload (...jobURIMatchers) {
-    return this.JOBS.matchJobs(...jobURIMatchers)
-               .map(jobURI => {
-                 this.console.log(`unload: ${jobURI}`)
-                 const job = this.job(jobURI)
-                 if (job && !job.loading) {
-                   this.job(jobURI).onUnload()
-                   this.JOBS.setJob(jobURI)
-                 }
-                 return !this.job(jobURI)
-               })
-               .reduce((acc, unloaded) => acc && unloaded, true)
+  unload (...jobSpecs) {
+    const jobs = this.JOBS.jobsFromSpecs(jobSpecs)
+    if (jobs.length === 0) return false
+    return jobs.every(job => {
+      this.console.log(`unload: ${job.uri}`)
+      if (!job.loading) {
+        job.onUnload()
+        this.JOBS.setJob(job.uri)
+      }
+      return !this.JOBS.job(job.uri)
+    })
   }
 
   setGlobalOnLoad (onLoad) {
@@ -80,29 +83,30 @@ export class DataLackey {
 
   // Load a given URI, returning a promise.
   // If already loaded or in progress, returns existing promise.
-  load (urish, loadOptions) {
-    if (Array.isArray(urish)) return Promise.all(urish.filter(u => u).map(u => this.load(u)))
+  load (uriSpecs, options) {
+    if (Array.isArray(uriSpecs))
+      return Promise.all(uriSpecs.filter(s => s).map(s => this.loadURI(uriFromSpec(s), options)))
+    else
+      return this.loadURI(uriFromSpec(uriSpecs), options)
+  }
 
-    const jobURI      = canonicalUri(urish),
+  loadURI (jobURI, options) {
+    const existingJob = this.JOBS.job(jobURI)
 
-          existingJob = this.job(jobURI)
-    if (existingJob) this.console.log(`  cache hit for ${jobURI}`)
-    if (existingJob) return existingJob.promise
+    if (existingJob) {
+      this.console.log(`  cache hit for ${jobURI}`)
+      return existingJob.promise
+    }
 
     const rule = this.RULES.findMatchingRule(jobURI)
     if (!rule) throw `Unmatched URI "${jobURI}"`
 
     // If a URL resolves to "undefined" or "null", it was likely a mistake. Highlight it.
     this.console[sketchyUri(jobURI) ? 'error' : 'log'](`load "${jobURI}"`)
-    const newJob = new Job(jobURI,
-                           rule.promiseForURIAndDependencies.bind(rule, jobURI, this.load),
-                           {
-                             console: this.console,
-                             onLoad:  this.globalOnLoad,
-                             ...rule.ruleOptions,
-                           })
+
+    const newJob = rule.newJob(jobURI, this.load, this.globalOnLoad)
     this.JOBS.setJob(jobURI, newJob)
-    return newJob.load(loadOptions)
+    return newJob.load(options)
   }
 
   reset () {
@@ -121,16 +125,16 @@ export class DataLackey {
       .catch(this.pollNow)
   }
 
-  enqueue (uris) {
-    this.console.log(`enqueue (${this.QUEUE.length})`, uris)
-    return asArray(uris).forEach(uri => this.QUEUE.unshift(uri))
+  enqueue (specs) {
+    this.console.log(`enqueue (${this.QUEUE.length})`, specs)
+    return asArray(specs).forEach(spec => this.QUEUE.unshift(uriFromSpec(spec)))
   }
 
   workNextJob () {
     const nextURI = this.QUEUE.pop()
     if (!nextURI) return null
     this.console.log(`workNextJob (${this.QUEUE.length})`)
-    return this.load(nextURI)
+    return this.loadURI(nextURI)
   }
 
   inspect () {

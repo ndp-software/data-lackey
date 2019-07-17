@@ -2,7 +2,7 @@ import {
   isNumeric,
 } from './util'
 
-export default class Job {
+export default class Job { // rule, params
   constructor (jobURI, loader, options = {}) {
     this.uri         = jobURI
     this.loading     = false
@@ -14,18 +14,26 @@ export default class Job {
     this.options     = options
     this.reloadLimit = options && isNumeric(options.reloadLimit) ? options.reloadLimit : 100 // don't reload indefinitely
     this.console     = options.console || window.console
+    this.load        = this.load.bind(this)
+    this.reload      = this.reload.bind(this)
+    this.onLoaded    = this.onLoaded.bind(this)
     this.reloadAgain = this.reloadAgain.bind(this)
   }
 
-  load (loadOptions) {
+  load (options) {
     this.loading     = true
-    this.loadOptions = loadOptions
+    this.loadOptions = options
     this.options     = { ...this.ruleOptions, ...this.loadOptions }
     this.promise     = this.loader()
-                           .then(r => (this.onLoaded(), r), e => {
-                             this.onError(e)
-                             throw e
-                           })
+                           .then(
+                             r => {
+                               this.onLoaded()
+                               return r
+                             },
+                             e => {
+                               this.onError(e)
+                               throw e
+                             })
     if (this.ruleOptions && this.ruleOptions.onLoad) this.ruleOptions.onLoad(this)
     return this.promise
   }
@@ -50,21 +58,9 @@ export default class Job {
       this.startPolling()
   }
 
-  shouldPoll () {
-    return this.options.reloadInterval
-  }
-
-  startPolling () {
-    // already started?
-    if (this.reloadTimeoutId) return
-
-    this.reloadTimeoutId = window.setTimeout(this.reloadAgain, this.options.reloadInterval)
-  }
-
-  /* private */
-  reloadAgain () {
-    this.reloadTimeoutId = null
-    this.reload()
+  onUnload () {
+    if (this.reloadTimeoutId) window.clearTimeout(this.reloadTimeoutId)
+    if (this.ruleOptions.unload) this.ruleOptions.unload(this.uri)
   }
 
   onError (e) {
@@ -76,9 +72,20 @@ export default class Job {
     this.error     = e
   }
 
-  onUnload () {
-    if (this.reloadTimeoutId) window.clearTimeout(this.reloadTimeoutId)
-    if (this.ruleOptions.unload) this.ruleOptions.unload(this.uri)
+  shouldPoll () {
+    return this.options.reloadInterval
+  }
+
+  startPolling () {
+    // already started?
+    if (this.reloadTimeoutId) return
+    this.reloadTimeoutId = window.setTimeout(this.reloadAgain, this.options.reloadInterval)
+  }
+
+  /* private */
+  reloadAgain () {
+    this.reloadTimeoutId = null
+    this.reload()
   }
 
 }
