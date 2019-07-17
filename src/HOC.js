@@ -4,7 +4,8 @@ import React               from 'react'
 import {
   arraysEqual,
   flatMap,
-}                          from './util'
+  urisFromUriSpecs,
+} from './util'
 
 /* global Set */
 if (!Set.prototype.difference)
@@ -93,7 +94,7 @@ export function loadData (...resourceCreators) {
                    : rc),
             )
             .filter(resource => resource),
-          resource => resource,
+          resource => (urisFromUriSpecs(resource).filter(r=>r)),
         )
       }
 
