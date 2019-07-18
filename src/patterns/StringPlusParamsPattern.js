@@ -13,9 +13,12 @@ export default class StringPlusParamsPattern {
 
   constructor (path, requiredParams) {
 
+
     // Build a RegExp that will match the path + the required params.
     if (requiredParams.length)
       path += '\\?.*' + requiredParams.sort().map(p => `\\b${p}=.*`).join('&')
+    else
+      path += '\\b'
 
     this.regExp = new RegExp(`^${path}`)
   }

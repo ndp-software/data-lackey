@@ -36,6 +36,7 @@ describe('StringPlusParamsPattern', () => {
       subject = new StringPlusParamsPattern('/asset', [])
       expect(subject.matches('asset')).toBeFalsy()
       expect(subject.matches('/asset')).toBeTruthy()
+      expect(subject.matches('/assets')).toBeFalsy()
       expect(subject.params('/asset?')).toEqual({})
       expect(subject.params('/asset')).toEqual({})
       expect(subject.matches('/asset?i=foo')).toBeTruthy()
