@@ -30,5 +30,5 @@ checks:
       count_threshold: 3
   identical-code:
     config:
-      threshold: 35
+      threshold: 40
       count_threshold: 3
