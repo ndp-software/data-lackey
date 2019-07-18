@@ -26,7 +26,9 @@ checks:
       threshold: 4
   similar-code:
     config:
-      threshold: 150
+      threshold: 50
+      count_threshold: 3
   identical-code:
     config:
-      threshold: 100
+      threshold: 25
+      count_threshold: 3
