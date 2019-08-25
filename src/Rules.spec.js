@@ -1,8 +1,6 @@
 /* eslint-env jest */
-
-import Rules from './Rules'
-import Rule  from './Rule'
-
+import Rules       from './Rules'
+import ruleFactory from './ruleFactory'
 
 describe('Rules', () => {
   let subject, consoleError, uniqueRule
@@ -10,12 +8,12 @@ describe('Rules', () => {
   beforeEach(() => {
     consoleError = jest.fn()
 
-    uniqueRule = new Rule('unique', {})
+    uniqueRule = ruleFactory('unique', {})
 
     subject = new Rules({ error: consoleError })
     subject.push(uniqueRule)
-    subject.push(new Rule('ambi$guous', {}))
-    subject.push(new Rule('ambi$dextrous', {}))
+    subject.push(ruleFactory('ambi$guous', {}))
+    subject.push(ruleFactory('ambi$dextrous', {}))
   })
 
   it('matches uniq rule', () => {

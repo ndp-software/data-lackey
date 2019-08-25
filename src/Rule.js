@@ -1,28 +1,19 @@
-import UrlPattern from 'url-pattern'
-
-import {
-  asArray,
-} from './util'
-
+import Job                           from './Job'
+import { asArray, urisFromUriSpecs } from './util'
 
 export default class Rule {
 
-  constructor (pattern, ruleOptions) {
-    const patternOptsForStrings = {
-      segmentNameStartChar: '$',
-      segmentValueCharset:  'a-zA-Z0-9\\-,_%~\\.!\\*\\(\\)',
-      ...(ruleOptions.patternOpts || {}),
-    }
-
-    this.matcher = new UrlPattern(pattern,
-                                  typeof(pattern) === 'string'
-                                    ? patternOptsForStrings
-                                    : undefined)
+  constructor (matcher, ruleOptions, console) {
+    this.matcher     = matcher
     this.ruleOptions = ruleOptions
+    this.console     = console
+
+    // this.matches = this.matcher.matches
+    // this.params  = this.matcher.params
   }
 
   matches (jobURI) {
-    return this.matcher.match(jobURI)
+    return this.matcher.matches(jobURI)
   }
 
   /**
@@ -36,9 +27,24 @@ export default class Rule {
    *   of values captured.
    */
   params (jobURI) {
-    const p = this.matcher.match(jobURI)
-    if (!p) throw `possible bug: pattern found but does not match jobURI ${jobURI}`
-    return p // whatever the match returns we pass as params
+    return this.matcher.params(jobURI)
+  }
+
+  newJob (uri, load, onLoad) {
+    const params         = this.params(uri),
+          dependencyURIs = urisFromUriSpecs(this.ruleOptions.dependsOn, params),
+          rawLoader      = this.rawLoaderPromise.bind(this, params),
+          loader         = dependencyURIs.length === 0
+                           ? rawLoader
+                           : () => this.promiseForDeps(dependencyURIs, load, rawLoader).then(rawLoader)
+
+    return new Job(uri,
+                   loader,
+                   {
+                     console: this.console,
+                     onLoad:  onLoad,
+                     ...this.ruleOptions,
+                   })
   }
 
   /**
@@ -51,17 +57,13 @@ export default class Rule {
     return this.ruleOptions.loader(...asArray(params))
   }
 
-  /**
-   * Resolves dependencies based on the given params. Dependencies can
-   * be static string, but they can also be functions that are called
-   * with the current job's parameters.
-   * @param params
-   * @returns {*}
-   */
-  dependenciesAsURIs(params) {
-    const deps = asArray(this.ruleOptions.dependsOn || [])
-    return deps.map(dep => typeof(dep) === 'function' ? dep(...asArray(params)) : dep)
-
+  // Given a pattern's `options`, start the loader function and return a
+  // record to track its status, including a `.promise` property.
+  promiseForDeps (dependencyURIs, load) {
+    this.console.log(`  checking dependencies (${dependencyURIs.length})...`)
+    return load(dependencyURIs)
+      .then(p => (this.console.log(`  ${dependencyURIs.length} dependencies loaded.`), p))
   }
-
 }
+
+

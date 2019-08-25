@@ -1,6 +1,5 @@
-/* eslint-disable promise/avoid-new,promise/catch-or-return */
 /* eslint-env jest */
-import { DataLackey }       from './core'
+import { DataLackey }       from './api'
 import { waitForAssertion } from './jest/waitForAssertion'
 
 
@@ -172,8 +171,9 @@ describe('DataLackey', function () {
 
         it('is ignored', () => {
 
-          subject.unload(URI, true)
+          const result = subject.unload(URI, true)
 
+          expect(result).toBe(false)
           expect(unloadFn).not.toBeCalled()
           expect(subject.loading(URI)).toBe(false)
           expect(subject.loaded(URI)).toBe(false)
@@ -186,8 +186,8 @@ describe('DataLackey', function () {
           expect(subject.loaded(URI)).toEqual(false)
 
           resultPromise = subject.load(URI)
-          expect(subject.loaded(URI)).toEqual(false)
           expect(subject.loading(URI)).toEqual(true)
+          expect(subject.loaded(URI)).toEqual(false)
 
           const unloaded = subject.unload(URI, true)
           expect(subject.loading(URI)).toEqual(true) // Don't abort
@@ -195,8 +195,8 @@ describe('DataLackey', function () {
           expect(unloadFn).not.toBeCalled()
           // Note: this could be done the other way. TODO discuss
         })
-
       })
+
       describe('after loading', () => {
         it('becomes dirty', async function () {
 
@@ -335,22 +335,22 @@ describe('DataLackey', function () {
 
     it('express multiple dependencies', async function () {
       // Dependency A
-      const promiseA = new Promise(resolve => resolvePromiseANow = resolve)
-      const loaderA  = jest.fn(() => promiseA)
+      const promiseA = new Promise(resolve => resolvePromiseANow = resolve),
+            loaderA  = jest.fn(() => promiseA)
       subject.rule('A9', {
         loader: loaderA,
       })
 
       // Dependency B
-      const promiseB = new Promise(resolve => resolvePromiseBNow = resolve)
-      const loaderB  = jest.fn(() => promiseB)
+      promiseB      = new Promise(resolve => resolvePromiseBNow = resolve)
+      const loaderB = jest.fn(() => promiseB)
       subject.rule('B$post', {
         loader: loaderB,
       })
 
       // C depends on A and B
-      const promiseC = new Promise(resolve => resolvePromiseCNow = resolve)
-      const loaderC  = jest.fn(() => promiseC)
+      const promiseC = new Promise(resolve => resolvePromiseCNow = resolve),
+            loaderC  = jest.fn(() => promiseC)
       subject.rule('C$post', {
         loader:    loaderC,
         dependsOn: [i => `A${i.post}`, 'B4'],
@@ -387,15 +387,15 @@ describe('DataLackey', function () {
 
     it('express transitive dependencies', async function () {
       // Dependency A
-      const promiseA = new Promise(resolve => resolvePromiseANow = resolve)
-      const loaderA  = jest.fn(() => promiseA)
+      const promiseA = new Promise(resolve => resolvePromiseANow = resolve),
+            loaderA  = jest.fn(() => promiseA)
       subject.rule('A$post', {
         loader: loaderA,
       })
 
       // Dependency B
-      const promiseB = new Promise(resolve => resolvePromiseBNow = resolve)
-      const loaderB  = jest.fn(() => promiseB)
+      promiseB      = new Promise(resolve => resolvePromiseBNow = resolve)
+      const loaderB = jest.fn(() => promiseB)
       subject.rule('B$post', {
         loader:    loaderB,
         dependsOn: ({ post }) => `A${post}`,
@@ -403,9 +403,9 @@ describe('DataLackey', function () {
 
       // C depends on A and B
       const promiseC = new Promise(resolve => {
-        resolvePromiseCNow = resolve
-      })
-      const loaderC  = jest.fn(() => promiseC)
+              resolvePromiseCNow = resolve
+            }),
+            loaderC  = jest.fn(() => promiseC)
       subject.rule('C$post', {
         loader:    loaderC,
         dependsOn: ({ post }) => `B${post}`,
@@ -438,16 +438,16 @@ describe('DataLackey', function () {
 
     it('express cyclic dependencies', async function () {
       // Dependency A
-      const promiseA = new Promise(resolve => resolvePromiseANow = resolve)
-      const loaderA  = jest.fn(() => promiseA)
+      const promiseA = new Promise(resolve => resolvePromiseANow = resolve),
+            loaderA  = jest.fn(() => promiseA)
       subject.rule('A', {
         loader:    loaderA,
         dependsOn: () => 'B',
       })
 
       // Dependency B
-      const promiseB = new Promise(resolve => resolvePromiseBNow = resolve)
-      const loaderB  = jest.fn(() => promiseB)
+      promiseB      = new Promise(resolve => resolvePromiseBNow = resolve)
+      const loaderB = jest.fn(() => promiseB)
       subject.rule('B', {
         loader:    loaderB,
         dependsOn: () => 'A',
@@ -488,9 +488,7 @@ describe('DataLackey', function () {
 
   describe('reset', () => {
 
-    const URI = 'dl:test'
-    let subject, mockLog,
-        loaderFn, unloadFn
+    const RESET_URI = 'dl:test'
 
     beforeEach(() => {
       mockLog = jest.fn()
@@ -502,33 +500,33 @@ describe('DataLackey', function () {
         loader: loaderFn,
         unload: unloadFn,
       })
-      expect(subject.job(URI)).toBe()
+      expect(subject.job(RESET_URI)).toBe()
     })
 
     it('does nothing if nothing loaded', () => {
       expect(subject.JOBS.JOBS).toEqual({})
-      expect(subject.loaded(URI)).toBe(false)
+      expect(subject.loaded(RESET_URI)).toBe(false)
 
       subject.reset()
 
-      expect(subject.loaded(URI)).toBe(false)
+      expect(subject.loaded(RESET_URI)).toBe(false)
       expect(subject.JOBS.JOBS).toEqual({})
     })
 
     it('marks previously loaded jobs as unloaded', async () => {
-      await subject.load(URI)
-      expect(subject.loaded(URI)).toBe(true)
+      await subject.load(RESET_URI)
+      expect(subject.loaded(RESET_URI)).toBe(true)
       expect(subject.JOBS.JOBS).not.toEqual({})
 
       subject.reset()
 
-      expect(subject.loaded(URI)).toBe(false)
+      expect(subject.loaded(RESET_URI)).toBe(false)
       expect(subject.JOBS.JOBS).toEqual({})
     })
 
     it('calls `unload` (this behavior subject to change)', async () => {
       expect(unloadFn).not.toHaveBeenCalled()
-      await subject.load(URI)
+      await subject.load(RESET_URI)
 
       subject.reset()
 
@@ -536,13 +534,13 @@ describe('DataLackey', function () {
     })
 
     it('handles in-progress jobs gracefully', async () => {
-      const promise = subject.load(URI)
-      expect(subject.loading(URI)).toBe(true)
+      promise = subject.load(RESET_URI)
+      expect(subject.loading(RESET_URI)).toBe(true)
 
       subject.reset()
 
       await promise
-      expect(subject.loading(URI)).toBe(false)
+      expect(subject.loading(RESET_URI)).toBe(false)
     })
   })
 
@@ -582,10 +580,9 @@ describe('DataLackey', function () {
     })
 
     it('keeps polling when the promise rejects', async () => {
-      // jest.useFakeTimers()
       subject.pollNow = jest.fn()
 
-      const promise = Promise.reject('fail')
+      promise = Promise.reject('fail')
       subject.enqueueNextPollNow(promise)
 
       try {

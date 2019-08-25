@@ -1,10 +1,11 @@
-import React               from 'react'
-import PropTypes           from 'prop-types'
 import hoistNonReactStatic from 'hoist-non-react-statics'
+import PropTypes           from 'prop-types'
+import React               from 'react'
 import {
-  flatMap,
   arraysEqual,
-}                          from './util'
+  flatMap,
+  urisFromUriSpecs,
+} from './util'
 
 /* global Set */
 if (!Set.prototype.difference)
@@ -18,23 +19,23 @@ if (!Set.prototype.difference)
   }
 
 /*
-  Returns a function that wraps a function and supplies it `loadData` functionality.
-  The function takes `resourceCreators`, which are:
-  * resource URIs
-  * functions that return resource URIs
+ Returns a function that wraps a function and supplies it `loadData` functionality.
+ The function takes `resourceCreators`, which are:
+ * resource URIs
+ * functions that return resource URIs
 
-  If the last parameters is an object, it is interpreted as "options". Valid
-  options are:
-  * `autoUnload` -- when the resources change, unload the old ones
-  * `reloadInterval` -- reload the resource every N milliseconds
-*/
+ If the last parameters is an object, it is interpreted as "options". Valid
+ options are:
+ * `autoUnload` -- when the resources change, unload the old ones
+ * `reloadInterval` -- reload the resource every N milliseconds
+ */
 export function loadData (...resourceCreators) {
 
   // Last argument might be options, grab it.
   const options = (resourceCreators.length > 1
-    && typeof(resourceCreators[resourceCreators.length - 1]) === 'object')
-    ? resourceCreators.pop()
-    : {}
+                   && typeof (resourceCreators[resourceCreators.length - 1]) === 'object')
+                  ? resourceCreators.pop()
+                  : {}
 
   return WrappedComponent => {
 
@@ -59,7 +60,7 @@ export function loadData (...resourceCreators) {
         const nextResources = this.resolveResources(rcs, props),
               promise       = this.loadResources(nextResources)
 
-        this.setState({ resources: nextResources, }, () => {
+        this.setState({ resources: nextResources }, () => {
           promise
             .then(() => this.forceUpdate())
             .catch(() => this.forceUpdate())
@@ -69,7 +70,7 @@ export function loadData (...resourceCreators) {
 
       loadResources (nextResources) {
 
-        if (arraysEqual(nextResources , this.state.resources)) return Promise.resolve() // do nothing
+        if (arraysEqual(nextResources, this.state.resources)) return Promise.resolve() // do nothing
 
         const prevResources   = this.state.resources,
               comingResources = new Set(nextResources).difference(prevResources),
@@ -88,12 +89,12 @@ export function loadData (...resourceCreators) {
         return flatMap(
           creators
             .map(rc =>
-                   typeof(rc) === 'function'
-                     ? rc(props)
-                     : rc,
+                   (typeof (rc) === 'function'
+                   ? rc(props)
+                   : rc),
             )
             .filter(resource => resource),
-          resource => resource,
+          resource => (urisFromUriSpecs(resource).filter(r=>r)),
         )
       }
 
@@ -109,7 +110,7 @@ export function loadData (...resourceCreators) {
         this.setResources(resourceCreators, nextProps)
       }
 
-      shouldComponentUpdate() {
+      shouldComponentUpdate () {
         // We want to suppress rendering while data is being reloaded
         return !this.dataLackey.reloading(this.state.resources)
       }

@@ -76,8 +76,9 @@ as any data loading function can be tested. They are conveniently isolated from 
 # API
 
 ## Terminology:
- * `load`: queue up a data resource to load
- * `data resource`
+ * `load`: queue up a data resource to load.
+ * `data resource`: a single set of data that can be loaded.
+ 
 #### Data Resource states:
   * `undefined`: unknown data resource, not yet tracked
   * `loading`
@@ -91,7 +92,7 @@ as any data loading function can be tested. They are conveniently isolated from 
 * `unload` callback should pass in params from matcher, not just URL
 * ttl
 * Load in batches
-* accept params to url. So a resource can be `{ uri: `/item`, itemId: 7 }`
+* accept params to url. So a resource can be `{ resource: `/item`, itemId: 7 }`
   that automatically becomes `/item?itemId=7`. Needs URL encoding, sorting of params.
 
 

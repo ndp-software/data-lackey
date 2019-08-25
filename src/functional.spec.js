@@ -1,13 +1,13 @@
 /* eslint-env jest */
-import { DataLackey }          from './core'
+import { DataLackey }          from './api'
 import createLackeyWithLoaders from './example'
 
 describe('DataLackey', () => {
 
   describe('specifying a simple data lackey URI', function () {
 
-    const uri          = 'todos'
-    const responseBody = [{ id: 1 }, { id: 2 }]
+    const uri          = 'todos',
+          responseBody = [{ id: 1 }, { id: 2 }]
     let loader, loadAction, subject, mockFetch, dispatch
 
     beforeEach(() => subject = new DataLackey())

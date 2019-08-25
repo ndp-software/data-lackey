@@ -2,63 +2,35 @@
 import Job  from './Job'
 import Jobs from './Jobs'
 
-describe('matchJobs', () => {
 
-  let subject
+describe('matchingURIs', () => {
+  it('returns matching URIs', () => {
+    const subject = new Jobs()
+    subject.setJob('a', {})
 
-  const URI  = 'dl:test-123/456',
-        URI2 = 'dl:test-123/789'
-
-  beforeEach(() => {
-    subject = new Jobs()
+    expect(subject.matchingURIs(() => true)).toEqual(['a'])
+    expect(subject.matchingURIs(() => false)).toEqual([])
   })
+})
 
-  describe('given a string', () => {
-    it('returns a loading URI that matches', () => {
-      subject.setJob(URI, new Job(URI, jest.fn()))
-      expect(subject.matchJobs(URI)).toEqual([URI])
-    })
+describe('urisFromSpecs', () => {
+  it('returns matching URIs', () => {
+    const subject = new Jobs()
+    subject.setJob('a', {})
+
+    expect(subject.urisFromSpecs('a')).toEqual(['a'])
+    expect(subject.urisFromSpecs('b')).toEqual([])
   })
+})
 
-  describe('given multiple params', () => {
-    it('returns empty array when none known', () => {
-      expect(subject.matchJobs(URI, URI2)).toEqual([])
-    })
+describe('jobsFromSpecs', () => {
+  it('returns matching URIs', () => {
+    const job     = 'foo',
+          subject = new Jobs()
+    subject.setJob('a', job)
 
-    it('returns a loading URI when first param matches', () => {
-      subject.setJob(URI, new Job(URI, jest.fn()))
-      expect(subject.matchJobs(URI, 'foo')).toEqual([URI])
-    })
-
-    it('returns URI when second param matches', () => {
-      subject.setJob(URI, new Job(URI, jest.fn()))
-      expect(subject.matchJobs('foo', URI)).toEqual([URI])
-    })
-
-    it('returns two matchJobs when two params match', () => {
-      subject.setJob(URI, new Job(URI, jest.fn()))
-      subject.setJob(URI2, new Job(URI2, jest.fn()))
-      expect(subject.matchJobs(URI, URI2)).toEqual([URI, URI2])
-    })
-
-
-  })
-
-  describe('given a function', () => {
-    it('returns URI if fn returns true', () => {
-      subject.setJob(URI, new Job(URI, jest.fn()))
-      expect(subject.matchJobs(_uri => true)).toEqual([URI])
-    })
-  })
-
-  describe('given a regular expression', () => {
-    const regEx = /test-(\d+)\/(\d+)/
-
-    it('returns URI if fn returns true', () => {
-      subject.setJob(URI, new Job(URI, jest.fn()))
-      expect(subject.matchJobs(regEx)).toEqual([URI])
-    })
-
+    expect(subject.jobsFromSpecs('a')).toEqual([job])
+    expect(subject.jobsFromSpecs('b')).toEqual([])
   })
 })
 

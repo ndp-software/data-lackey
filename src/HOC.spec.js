@@ -1,14 +1,13 @@
 /* eslint-env jest */
 // global window
+import createLackeyWithLoaders from './example.js'
 // eslint-disable-next-line no-unused-vars
 import React from 'react'
+import { loadData }            from './HOC'
 import {
   mount,
   shallow,
 }            from 'enzyme'
-
-import { loadData }            from './HOC'
-import createLackeyWithLoaders from './example.js'
 
 
 function sampleComponent (props) {
@@ -32,9 +31,9 @@ describe('HOC', function () {
     propTracker = 'Dispatched: '
     recordLoad  = jest.fn(x => propTracker = `${propTracker} ${x}`)
 
-    const rootLoader    = jest.fn(() => Promise.resolve('items loaded').then(recordLoad))
-    const itemLoader    = jest.fn(id => Promise.resolve(`item ${id} loaded`).then(recordLoad))
-    const detailsLoader = jest.fn(id => Promise.resolve(`detail ${id} loaded`).then(recordLoad))
+    const rootLoader    = jest.fn(() => Promise.resolve('items loaded').then(recordLoad)),
+          itemLoader    = jest.fn(id => Promise.resolve(`item ${id} loaded`).then(recordLoad)),
+          detailsLoader = jest.fn(id => Promise.resolve(`detail ${id} loaded`).then(recordLoad))
 
     options          = {
       console: {
