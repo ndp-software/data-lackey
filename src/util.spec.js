@@ -1,6 +1,5 @@
 /* eslint-env jest */
 
-import ruleFactory  from './ruleFactory'
 import * as subject from './util'
 
 describe('arrayEqual', () => {
