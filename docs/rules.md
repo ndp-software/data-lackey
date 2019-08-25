@@ -2,7 +2,7 @@
 
 The above example glosses over many of the capabilities of the Data Lackey definition. 
 Data lackey is based off of **rules**. A rule consists of: 
-  * **matcher**, a string pattern to match
+  * **matcher**, a pattern to match
   * **loader**, a function that provides the needed data
   * **dependencies**, if any
   * other options
@@ -17,16 +17,14 @@ books from an API:
 Each of these pieces is explained in more detail below.
 
 ## Matcher
-The **matcher** is a string that specifies a set "data resources". 
+The **matcher** specifies a set "data resources". 
 They may be top-level resources like `blog-posts`). 
 
 A match may also 
 specify _a set of URIs_, using URI patterns. For specific items with ids like `/post/73`, 
 using a `$` to identify the IDs, as in `/posts/$postId`. 
-_Note: These pattern rules maybe overridden by passing `patternOpts` into the 
-rule configuration. These use [Url Pattern](https://www.npmjs.com/package/url-pattern); if 
-the documentation seems out of date, check [the code here.](https://github.com/snd/url-pattern/blob/master/src/url-pattern.coffee#L191)_ 
-_Note: matchers can also be regular expressions._
+
+For more options, see [patterns.md](./patterns.md)
 
 ## Loader
 All rules require a **loader** function. As suggested by its name, this function will be called to 
