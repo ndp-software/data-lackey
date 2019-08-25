@@ -92,8 +92,6 @@ as any data loading function can be tested. They are conveniently isolated from 
 * `unload` callback should pass in params from matcher, not just URL
 * ttl
 * Load in batches
-* accept params to url. So a resource can be `{ resource: `/item`, itemId: 7 }`
-  that automatically becomes `/item?itemId=7`. Needs URL encoding, sorting of params.
 
 
 ### Related Projects
