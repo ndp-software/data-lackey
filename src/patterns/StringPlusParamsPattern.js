@@ -11,16 +11,16 @@
  */
 export default class StringPlusParamsPattern {
 
-  constructor (path, requiredParams) {
+  constructor (name, requiredParams) {
 
 
-    // Build a RegExp that will match the path + the required params.
+    // Build a RegExp that will match the resourceName + the required params.
     if (requiredParams.length)
-      path += '\\?.*' + requiredParams.sort().map(p => `\\b${p}=.*`).join('&')
+      name += '\\?.*' + requiredParams.sort().map(p => `\\b${p}=.*`).join('&')
     else
-      path += '\\b'
+      name += '\\b'
 
-    this.regExp = new RegExp(`^${path}`)
+    this.regExp = new RegExp(`^${name}`)
   }
 
   matches (jobURI) {

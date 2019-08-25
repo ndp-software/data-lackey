@@ -1,7 +1,16 @@
 export function uriFromSpec (spec) {
   if (!spec) return null
   if (typeof spec === 'object') {
-    const { resource, ...params } = spec
+    // We allow passing in a specific `params` key, or just throw in the params.
+    const {
+            resource,
+            params: explicitParams = {},
+            ...     implicitParams
+          }      = spec,
+          params = {
+            ...explicitParams,
+            ...implicitParams,
+          }
     if (params) {
       return buildParams(resource, params)
     } else

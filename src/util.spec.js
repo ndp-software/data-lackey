@@ -1,15 +1,16 @@
 /* eslint-env jest */
 
+import ruleFactory  from './ruleFactory'
 import * as subject from './util'
 
 describe('arrayEqual', () => {
 
-  it('handles the same array', () => {
+  test('handles the same array', () => {
     const a = ['foo', 'bar']
     expect(subject.arraysEqual(a, a)).toEqual(true)
   })
 
-  it('handles nulls', () => {
+  test('handles nulls', () => {
     const a = ['foo', 'bar']
     expect(subject.arraysEqual(a, null)).toEqual(false)
     expect(subject.arraysEqual(null, a)).toEqual(false)
@@ -22,21 +23,21 @@ describe('asMatchFn', () => {
 
 
   describe('given a string', () => {
-    it('returns false for none matching', () => {
+    test('returns false for none matching', () => {
       expect(subject.asMatchFn('foo')('bar')).toEqual(false)
     })
 
-    it('returns false for partial match', () => {
+    test('returns false for partial match', () => {
       expect(subject.asMatchFn('foo')('food')).toEqual(false)
     })
 
-    it('returns true for matching', () => {
+    test('returns true for matching', () => {
       expect(subject.asMatchFn('foo')('foo')).toEqual(true)
     })
   })
 
   describe('given a function', () => {
-    it('returns result of fn', () => {
+    test('returns result of fn', () => {
       expect(subject.asMatchFn(_uri => true)('_')).toEqual(true)
       expect(subject.asMatchFn(_uri => false)('_')).toEqual(false)
     })
@@ -45,11 +46,11 @@ describe('asMatchFn', () => {
   describe('given a regular expression', () => {
     const URI = 'dl:test-123/456'
 
-    it('does not return URI if fn returns false', () => {
+    test('does not return URI if fn returns false', () => {
       expect(subject.asMatchFn(/x93fk/)(URI)).toEqual(null)
     })
 
-    it('returns params if matches', () => {
+    test('returns params if matches', () => {
       const regEx     = /test-(\d+)\/(\d+)/,
             matchData = subject.asMatchFn(regEx)(URI)
 
@@ -60,4 +61,36 @@ describe('asMatchFn', () => {
 
 
   })
+})
+
+describe('urisFromUriSpecs', () => {
+  test('returns empty array if no dependsOn', () => {
+    expect(subject.urisFromUriSpecs()).toEqual([])
+  })
+
+  test('returns string', () => {
+    expect(subject.urisFromUriSpecs('foo')).toEqual(['foo'])
+  })
+
+  test('maps object to string', () => {
+    expect(subject.urisFromUriSpecs({ resource: 'racks', id: 7 })).toEqual(['racks?id=7'])
+
+  })
+
+  test('returns result of function', () => {
+    expect(subject.urisFromUriSpecs(() => 'foo')).toEqual(['foo'])
+  })
+
+  test('passes params to function', () => {
+    const dependsOn = jest.fn()
+
+    subject.urisFromUriSpecs(dependsOn, 'foo')
+
+    expect(dependsOn).toHaveBeenCalledWith('foo')
+  })
+
+  test('returns multiple', () => {
+    expect(subject.urisFromUriSpecs(['foo', 'bar'])).toEqual(['foo', 'bar'])
+  })
+
 })

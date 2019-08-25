@@ -1,11 +1,12 @@
 import { uriFromSpec } from './uriFromSpec'
 
 
-export function urisFromUriSpecs (uriSpecs) {
-  return asArray(uriSpecs).map(uriSpec => {
-    return uriFromSpec(uriSpec)
-  })
+export function urisFromUriSpecs (uriSpecs, params = {}) {
+  return asArray(uriSpecs || [])
+    .map(dep => (typeof (dep) === 'function' ? dep(...asArray(params)) : dep))
+    .map(spec => uriFromSpec(spec))
 }
+
 
 export function matcherFromJobMatchers (jobMatchers) {
   const matchers = asArray(jobMatchers).map(m => asMatchFn(m))

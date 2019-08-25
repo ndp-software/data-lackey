@@ -1,5 +1,5 @@
-import Job         from './Job'
-import { asArray } from './util'
+import Job                           from './Job'
+import { asArray, urisFromUriSpecs } from './util'
 
 export default class Rule {
 
@@ -7,6 +7,9 @@ export default class Rule {
     this.matcher     = matcher
     this.ruleOptions = ruleOptions
     this.console     = console
+
+    // this.matches = this.matcher.matches
+    // this.params  = this.matcher.params
   }
 
   matches (jobURI) {
@@ -29,12 +32,14 @@ export default class Rule {
 
   newJob (uri, load, onLoad) {
     const params         = this.params(uri),
-          dependencyURIs = this.dependenciesAsURIs(params),
+          dependencyURIs = urisFromUriSpecs(this.ruleOptions.dependsOn, params),
           rawLoader      = this.rawLoaderPromise.bind(this, params),
-          promise        = this.promiseForURIAndDependencies.bind(this, dependencyURIs, rawLoader, load)
+          loader         = dependencyURIs.length === 0
+                           ? rawLoader
+                           : () => this.promiseForDeps(dependencyURIs, load, rawLoader).then(rawLoader)
 
     return new Job(uri,
-                   promise,
+                   loader,
                    {
                      console: this.console,
                      onLoad:  onLoad,
@@ -52,36 +57,9 @@ export default class Rule {
     return this.ruleOptions.loader(...asArray(params))
   }
 
-  /**
-   * Resolves dependencies based on the given params. Dependencies can
-   * be static string, but they can also be functions that are called
-   * with the current job's parameters.
-   * @param params
-   * @returns {*}
-   */
-  dependenciesAsURIs (params) {
-    const deps = asArray(this.ruleOptions.dependsOn || [])
-    return deps.map(dep => (typeof (dep) === 'function' ? dep(...asArray(params)) : dep))
-  }
-
   // Given a pattern's `options`, start the loader function and return a
   // record to track its status, including a `.promise` property.
-  promiseForURIAndDependencies (dependencyURIs, rawLoader, load) {
-
-    if (dependencyURIs.length === 0) return rawLoader()
-
-    this.console.log(`  checking dependencies (${dependencyURIs.length})...`)
-    return load(dependencyURIs)
-      .then(p => (this.console.log(`  ${dependencyURIs.length} dependencies loaded.`), p))
-      .then(rawLoader)
-  }
-
-  // Given a pattern's `options`, start the loader function and return a
-  // record to track its status, including a `.promise` property.
-  promiseForDependencies (dependencyURIs, load) {
-
-    if (dependencyURIs.length === 0) return Promise.resolve()
-
+  promiseForDeps (dependencyURIs, load) {
     this.console.log(`  checking dependencies (${dependencyURIs.length})...`)
     return load(dependencyURIs)
       .then(p => (this.console.log(`  ${dependencyURIs.length} dependencies loaded.`), p))

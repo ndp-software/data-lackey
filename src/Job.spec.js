@@ -5,7 +5,6 @@ import Job from './Job'
 describe('Job', () => {
 
   let subject, loader, ruleOptions, onLoad, console
-
   beforeEach(() => {
     loader      = () => Promise.resolve('foo')
     onLoad      = jest.fn()
@@ -15,21 +14,21 @@ describe('Job', () => {
   })
 
   describe('new Job()', () => {
-    it('is not loading', () => expect(subject.loading).toBeFalsy())
-    it('is not reloading', () => expect(subject.reloading).toBeFalsy())
-    it('is not loaded', () => expect(subject.loaded).toBeFalsy())
-    it('is not failed', () => expect(subject.failed).toBeFalsy())
+    test('is not loading', () => expect(subject.loading).toBeFalsy())
+    test('is not reloading', () => expect(subject.reloading).toBeFalsy())
+    test('is not loaded', () => expect(subject.loaded).toBeFalsy())
+    test('is not failed', () => expect(subject.failed).toBeFalsy())
   })
 
   describe('.load', () => {
-    let resolver, rejecter, promise, resolved, rejected
+    let resolveNow, rejectNow, promise, resolved, rejected
 
     beforeEach(() => {
       resolved = false
       rejected = false
       promise  = new Promise((resolve, reject) => {
-        resolver = () => resolve()
-        rejecter = () => reject()
+        resolveNow = () => resolve()
+        rejectNow = () => reject()
       })
       loader   = () => promise
       subject  = new Job('uri', loader, ruleOptions)
@@ -41,44 +40,44 @@ describe('Job', () => {
 
     describe('when pending', () => {
 
-      afterEach(() => resolver())
+      afterEach(() => resolveNow())
 
-      it('is loading', () => expect(subject.loading).toBeTruthy())
-      it('is not reloading', () => expect(subject.reloading).toBeFalsy())
-      it('is not loaded', () => expect(subject.loaded).toBeFalsy())
-      it('is not failed', () => expect(subject.failed).toBeFalsy())
-      it('calls onLoad option', () => {
+      test('is loading', () => expect(subject.loading).toBeTruthy())
+      test('is not reloading', () => expect(subject.reloading).toBeFalsy())
+      test('is not loaded', () => expect(subject.loaded).toBeFalsy())
+      test('is not failed', () => expect(subject.failed).toBeFalsy())
+      test('calls onLoad option', () => {
         expect(onLoad).toHaveBeenCalledWith(subject)
       })
     })
 
     describe('resolved', () => {
-      beforeEach(() => resolver())
+      beforeEach(() => resolveNow())
 
-      it('is not loading', () => expect(subject.loading).toBeFalsy())
-      it('is not reloading', () => expect(subject.reloading).toBeFalsy())
-      it('is loaded', () => expect(subject.loaded).toBeTruthy())
-      it('is not failed', () => expect(subject.failed).toBeFalsy())
-      it('promise is resolved', () => expect(resolved).toBeTruthy())
-      it('promise is not rejected', () => expect(rejected).toBeFalsy())
+      test('is not loading', () => expect(subject.loading).toBeFalsy())
+      test('is not reloading', () => expect(subject.reloading).toBeFalsy())
+      test('is loaded', () => expect(subject.loaded).toBeTruthy())
+      test('is not failed', () => expect(subject.failed).toBeFalsy())
+      test('promise is resolved', () => expect(resolved).toBeTruthy())
+      test('promise is not rejected', () => expect(rejected).toBeFalsy())
     })
 
     describe('rejected', () => {
-      beforeEach(() => rejecter())
+      beforeEach(() => rejectNow())
 
-      it('is loading', () => expect(subject.loading).toBeFalsy())
-      it('is not reloading', () => expect(subject.reloading).toBeFalsy())
-      it('is not loaded', () => expect(subject.loaded).toBeFalsy())
-      it('is failed', () => expect(subject.failed).toBeTruthy())
-      it('promise is not resolved', () => expect(resolved).toBeFalsy())
-      it('promise is rejected', () => expect(rejected).toBeTruthy())
+      test('is loading', () => expect(subject.loading).toBeFalsy())
+      test('is not reloading', () => expect(subject.reloading).toBeFalsy())
+      test('is not loaded', () => expect(subject.loaded).toBeFalsy())
+      test('is failed', () => expect(subject.failed).toBeTruthy())
+      test('promise is not resolved', () => expect(resolved).toBeFalsy())
+      test('promise is rejected', () => expect(rejected).toBeTruthy())
     })
 
   })
 
   describe('.reload', () => {
     describe('if not loaded', () => {
-      it('does nothing', () => {
+      test('does nothing', () => {
         subject = new Job('uri', loader, ruleOptions)
 
         subject.reload()
@@ -89,7 +88,7 @@ describe('Job', () => {
     })
 
     describe('if at reload limit', () => {
-      it('does nothing', () => {
+      test('does nothing', () => {
         subject             = new Job('uri', loader, ruleOptions)
         subject.loading     = false
         subject.reloading   = false
@@ -105,9 +104,9 @@ describe('Job', () => {
     })
 
 
-    it('calls reload', async () => {
-      let resolver
-      loader                  = () => new Promise(resolve => resolver = () => resolve())
+    test('calls reload', async () => {
+      let resolveNow
+      loader                  = () => new Promise(resolve => resolveNow = () => resolve())
       ruleOptions.reloadLimit = 10
       subject                 = new Job('uri', loader, ruleOptions)
       subject.loading         = false
@@ -122,7 +121,7 @@ describe('Job', () => {
       expect(subject.reloading).toBeTruthy()
       expect(subject.loaded).toBeTruthy()
 
-      resolver()
+      resolveNow()
       await promise
 
       expect(subject.loading).toBeFalsy()
@@ -130,7 +129,7 @@ describe('Job', () => {
       expect(subject.loaded).toBeTruthy()
     })
 
-    it('respects reloadLimit', () => {
+    test('respects reloadLimit', () => {
       subject             = new Job('uri', loader, ruleOptions)
       subject.loaded      = true
       subject.reloadLimit = 0
@@ -143,17 +142,17 @@ describe('Job', () => {
   })
 
   describe('shouldPoll', function () {
-    it('defaults to false', () => {
+    test('defaults to false', () => {
       subject = new Job('uri', loader, ruleOptions)
       expect(subject.shouldPoll()).toBeFalsy()
     })
 
-    it('returns true if reloadInterval set with rule', () => {
+    test('returns true if reloadInterval set with rule', () => {
       subject = new Job('uri', loader, { reloadInterval: 10 })
       expect(subject.shouldPoll()).toBeTruthy()
     })
 
-    it('returns true if reloadInterval set with load()', () => {
+    test('returns true if reloadInterval set with load()', () => {
       subject = new Job('uri', loader, ruleOptions)
       subject.load({ reloadInterval: 10 })
       expect(subject.shouldPoll()).toBeTruthy()
@@ -161,7 +160,7 @@ describe('Job', () => {
   })
 
   describe('startPolling (polling with reloadInterval)', () => {
-    it('does nothing if already queued up', () => {
+    test('does nothing if already queued up', () => {
       subject                 = new Job('uri', loader, ruleOptions)
       subject.reloadTimeoutId = 1
       window.setTimeout       = jest.fn()
@@ -171,7 +170,7 @@ describe('Job', () => {
       expect(window.setTimeout).not.toHaveBeenCalled()
     })
 
-    it('queues up a job in N ms', () => {
+    test('queues up a job in N ms', () => {
       subject                 = new Job('uri', loader, { reloadInterval: 10 })
       subject.reloadTimeoutId = null
       window.setTimeout       = jest.fn()
@@ -183,7 +182,7 @@ describe('Job', () => {
   })
 
   describe('reloadAgain', () => {
-    it('calls reload', () => {
+    test('calls reload', () => {
       subject.reload = jest.fn()
 
       subject.reloadAgain()
@@ -191,7 +190,7 @@ describe('Job', () => {
       expect(subject.reload).toHaveBeenCalledWith()
 
     })
-    it('resets reloadTimeoutId', () => {
+    test('resets reloadTimeoutId', () => {
       subject.reloadTimeoutId = 'foo'
 
       subject.reloadAgain()
@@ -201,7 +200,7 @@ describe('Job', () => {
   })
 
   describe('onUnload', () => {
-    it('calls clearTimeout', () => {
+    test('calls clearTimeout', () => {
       window.clearTimeout = jest.fn()
 
       subject.onUnload()
@@ -213,10 +212,9 @@ describe('Job', () => {
       subject.onUnload()
 
       expect(window.clearTimeout).toHaveBeenCalledWith(1)
-
     })
 
-    it('calls ruleOptions.unload', () => {
+    test('calls ruleOptions.unload', () => {
       ruleOptions = { onLoad, unload: jest.fn() }
       subject     = new Job('uri', loader, ruleOptions)
 
