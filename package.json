@@ -4,7 +4,7 @@
   "description": "orchestrate your data loading",
   "main": "dist/index.js",
   "files": [
-    "dist/*.js"
+    "dist/**/*.js"
   ],
   "scripts": {
     "test": "./node_modules/.bin/jest --coverage",
