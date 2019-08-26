@@ -9,7 +9,7 @@
   "scripts": {
     "test": "./node_modules/.bin/jest --coverage",
     "lint": "./node_modules/.bin/eslint --report-unused-disable-directives ./src/",
-    "build": "babel src --ignore '*.spec.js' --ignore 'dist/jest/**/*' --out-dir dist",
+    "build": "babel src --ignore '**/*.spec.js' --ignore '**/jest/**/*' --out-dir dist",
     "prepublish": "yarn build",
     "release-it": "GITHUB_TOKEN=$RELEASE_IT_GITHUB_TOKEN ./node_modules/.bin/release-it"
   },
