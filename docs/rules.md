@@ -17,12 +17,12 @@ books from an API:
 Each of these pieces is explained in more detail below.
 
 ## Matcher
-The **matcher** specifies a set "data resources". 
+The **matcher** (or pattern) specifies a set "data resources". 
 They may be top-level resources like `blog-posts`). 
 
 A match may also 
 specify _a set of URIs_, using URI patterns. For specific items with ids like `/post/73`, 
-using a `$` to identify the IDs, as in `/posts/$postId`. 
+using a `:` to identify the IDs, as in `/posts/:postId`. 
 
 For more options, see [patterns.md](./patterns.md)
 
@@ -42,13 +42,13 @@ be called with arguments for any tagged matches in the matcher as properties
 of the first argument. For example:
 
 ```js
-  myLackey.rule('/posts-$postId', {
+  myLackey.rule('/posts-:postId', {
     loader: ({postId}) => fetch('posts/' + postId)  // `postId` matched above
   })
 ```
 
 __DataLackey does not know about or track the actual data.__ It does not model data at all-- 
-you will use Redux or some other mechanism to do this. DataLackey is just helping 
+you will use Redux or some other mechanism to do this. DataLackey is helping 
 orchestrate the loading calls.
 
 ## Dependencies 
@@ -83,13 +83,13 @@ which receives the same parameters as the `loader` function. In the following ex
 the comments require that the main post be loaded first, as might happen on a page about the specific comment:
 
 ```js
-  myLackey.rule('post-(\d+)\/comments', {
-    loader   : id => loadFn,
-    dependsOn: id => `post-${id}`
+  myLackey.rule('post/:id/comments', {
+    loader:    ({id}) => loadFn,
+    dependsOn: ({id}) => `post-${id}`
   })
 
-  myLackey.rule('post-(\d+)', {
-    loader   : id => loadFn,
+  myLackey.rule('post/:id', {
+    loader:    ({id}) => loadFn,
   })
 ```
 Like the static string, this can return an array of values if needed.
