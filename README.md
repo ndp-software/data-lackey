@@ -50,7 +50,24 @@ lackey.rule('/books',        { loader:    () => fetch('/api/books') })
 lackey.rule('/book :bookId', { loader:    ({bookId}) => fetch(`/api/books/${bookId}`),
                                dependsOn: 'books' })
 ```
+More details on [patterns](./docs/patterns.md) and [rules](./docs/rules.md).
+
+### Load the Data
+
+Very simply, you can call `lackey.load('/books')` to call the underlying `fetch`. This is 
+nice because you can hide some details in the loader that you don't want in the load call--
+but probably not worth restructuring your code for. But when you have dependencies
+between different pieces of data-- the above the code wants the books index to be called before
+an individual book-- it is convenient. Calling `load('/book 8')` will return a promise that 
+includes the loading of the `/books` endpoint. These dependencies (promise chains) can become
+quite complex if you have a larger webapp.
+
+This direct usage [is outlined here.](./docs/direct_usage.md)
+
 ### Configure your React Component
+Data Lackey understands React components, and offers a HOC to manage the loading of
+data. Individual components can be completely free of data loading responsibilities.
+
 Configure your component with a new wrapping method `mapPropsToDataRsrcs`:
 ```js
 // File: myComponent.js
@@ -65,17 +82,9 @@ export default WrappedComponent
 ````
 Now, when the component is mounted, the `book` details will be requested. Since
 that is dependent on the `books` data as well, that will be loaded first.
- 
 
+Usage within React is 100% configuration driven and [is outlined here.](./docs/react.md)
 
-## Advanced Usage
-
-Data Lackey works great with React, and removes tedious and error prone data loading
-code, replacing it with declarations of data depedencies. Usage within React is 100% 
-configuration driven and [is outlined here.](./docs/react.md)
-
-You can also use it directly, to isolate the load orchestration details. This is called
-["direct usage" and outlined here.](./direct_usage.md)
 
 ## Testing with Data Lackey
 
