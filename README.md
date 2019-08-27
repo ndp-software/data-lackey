@@ -13,6 +13,18 @@ _Data Lackey orchestrates data loading for rich front-end JS applications._
 With Data Lackey:
 * declaratively express which data is needed by components
 * keep data management separate from views
+
+At a basic level, Data Lackey keeps track of the loading of your data, so it's not 
+buried or distributed throughout components or middleware:
+```
+                                 rules 
+                                   &
+                                 loaders
+                                   ⬇
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯→ load ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯→ Configured Data Lackey ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯→ promise for data
+    (resource uri)
+```
+It layers on top of this :
 * automatically track which data is not loaded, being loaded and already loaded
 * configure dependencies between data, and be guaranteed data is loaded before other data
 * reload data at periodic intervals (poll)
