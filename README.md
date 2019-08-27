@@ -1,15 +1,18 @@
 # Data Lackey
 
-> __Tired of having to build promise chains to coordinate the loading of your pages? 
-Tired of having pages break because a user linked from a different page?
-Tired of overloading your server with duplicate requests for the same data?
-Give Data Lackey a spin....__
+* Tired of building complex views that manage data loading?
+* Tired of promise chains to coordinate the loading of your pages? 
+* Tired of pages breaking because some data wasn't loaded first?
+* Tired of overloading your server with duplicate requests for the same data?
+
+> Give Data Lackey a spin....
 
 
-Data Lackey orchestrates data loading for rich front-end JS applications. 
+_Data Lackey orchestrates data loading for rich front-end JS applications._
 
 With Data Lackey:
 * declaratively express which data is needed by components
+* keep data management separate from views
 * automatically track which data is not loaded, being loaded and already loaded
 * configure dependencies between data, and be guaranteed data is loaded before other data
 * reload data at periodic intervals (poll)
@@ -20,27 +23,24 @@ With Data Lackey:
 ## Installation & Basic Usage
 
 ```bash
-shell> yarn add data-lackey
+$ yarn add data-lackey
 ```
+### Create and Configure your lackey
+
 You'll need create a "data lackey" to track your data loading. Creating a file for this:
 ```js
-// File: myLackey.js -- or whatever you want
+// File: lackey.js -- or whatever you want
 
 import { DataLackey } from 'data-lackey'
 
-export const myLackey = new DataLackey()
+export const lackey = new DataLackey()
 
-myLackey.rule('/books',        
-              { 
-                loader:    () => fetch('/api/books') 
-              })
-myLackey.rule('/book :bookId', 
-              {
-                loader:    ({bookId}) => fetch(`/api/books/${bookId}`),
-                dependsOn: 'books'
-              })
+lackey.rule('/books',        { loader:    () => fetch('/api/books') })
+lackey.rule('/book :bookId', { loader:    ({bookId}) => fetch(`/api/books/${bookId}`),
+                               dependsOn: 'books' })
 ```
-And then, configure your component with a new wrapping method `mapPropsToDataRsrcs`:
+### Configure your React Component
+Configure your component with a new wrapping method `mapPropsToDataRsrcs`:
 ```js
 // File: myComponent.js
 
@@ -60,39 +60,30 @@ that is dependent on the `books` data as well, that will be loaded first.
 ## Advanced Usage
 
 Data Lackey works great with React, and removes tedious and error prone data loading
-code, replacing it with declarations of data depedencies. Usage within React is 100% configuration driven and [is outlined here.](./docs/react.md)
+code, replacing it with declarations of data depedencies. Usage within React is 100% 
+configuration driven and [is outlined here.](./docs/react.md)
 
 You can also use it directly, to isolate the load orchestration details. This is called
 ["direct usage" and outlined here.](./direct_usage.md)
 
-
-
 ## Testing with Data Lackey
 
-Data Lackey itself is well tested. As most of the configuration of Data Lackey is declarative, there's
-less of a need to test this configuration. Given that, though, `loader` functions can be unit tested, 
-as any data loading function can be tested. They are conveniently isolated from any component code.
+Data Lackey itself is well tested. One of the benefits of Data Lackey is that it separates the loading
+of data from the component itself. The loaders can be unit tested (they are functional in nature),
+and should simplify your component tests.
 
 # API
 
 ## Terminology:
- * `load`: queue up a data resource to load.
  * `data resource`: a single set of data that can be loaded.
+ * `data uri`: a string identifying a single resource. 
+ * `load`: request the loading of a data resource.
  
 #### Data Resource states:
   * `undefined`: unknown data resource, not yet tracked
   * `loading`
   * `loaded` => action `unload`
   * `failed to load`
-  
-
-
-### TODO
-
-* `unload` callback should pass in params from matcher, not just URL
-* ttl
-* Load in batches
-
 
 ### Related Projects
 
