@@ -5,17 +5,14 @@
 * Tired of pages breaking because some data wasn't loaded first?
 * Tired of overloading your server with duplicate requests for the same data?
 
-> Give Data Lackey a spin....
-
-
-_Data Lackey orchestrates data loading for rich front-end JS applications._
+Give Data Lackey a spin! _Data Lackey orchestrates data loading for rich front-end JS applications._
 
 With Data Lackey:
-* declaratively express which data is needed by components
-* keep data management separate from views
+* declaratively express what data is needed
+* separate data loading from views
 
 At a basic level, Data Lackey keeps track of the loading of your data, so it's not 
-buried or distributed throughout components or middleware:
+buried in or distributed throughout components or middleware:
 ```
                                  rules 
                                    &
@@ -25,8 +22,10 @@ buried or distributed throughout components or middleware:
     (resource uri)
 ```
 It layers on top of this :
-* automatically track which data is not loaded, being loaded and already loaded
-* configure dependencies between data, and be guaranteed data is loaded before other data
+* automatically track which data is not loaded, being loaded and already loaded. At any 
+  point you can ask whether a given piece of data is loaded.
+* configure dependencies between data, and be guaranteed data is loaded before other data. 
+  This eliminates bugs and race conditions from view loading.
 * reload data at periodic intervals (poll)
 * expire data / support a ttl (time to live) for individual pieces of data
 
