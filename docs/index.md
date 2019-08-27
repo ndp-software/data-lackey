@@ -8,7 +8,7 @@ an individual book-- it is convenient. Calling `load('/book 8')` will return a p
 includes the loading of the `/books` endpoint. These dependencies (promise chains) can become
 quite complex if you have a larger webapp.
 
-This direct usage [is outlined here.](./docs/direct_usage.md)
+This direct usage [is outlined here.](./direct_usage.md)
 
 ### Configure your React Component
 Data Lackey understands React components, and offers a HOC to manage the loading of
@@ -29,7 +29,7 @@ export default WrappedComponent
 Now, when the component is mounted, the `book` details will be requested. Since
 that is dependent on the `books` data as well, that will be loaded first.
 
-Usage within React is 100% configuration driven and [is outlined here.](./docs/react.md)
+Usage within React is 100% configuration driven and [is outlined here.](./react.md)
 
 
 ## [motivation.md](motivation.md) and [VISION.md](VISION.md) 
