@@ -30,7 +30,7 @@ module.exports = {
     'array-bracket-spacing':             ['error', 'never'],
     'arrow-parens':                      [2, 'as-needed'],
     'babel/object-curly-spacing':        ['error', 'always', { "objectsInObjects": true }],
-    'camelcase':                         ['error'],
+    'camelcase':                         ['error', { allow: ['UNSAFE_componentWillReceiveProps']}],
     'comma-dangle':                      [0],
     'complexity':                        ['error', 14],
     'generator-star-spacing':            [1],
