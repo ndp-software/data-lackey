@@ -229,11 +229,13 @@ describe('HOC', function () {
       const c = shallow(<WrappedComponent dataLackey={lackey} />)
       jest.spyOn(c.instance(), 'setResources')
 
-      c.instance().componentWillReceiveProps({ foo: 'bar' })
+      // eslint-disable-next-line new-cap
+      c.instance().UNSAFE_componentWillReceiveProps({ foo: 'bar' })
 
       expect(c.instance().setResources).toHaveBeenCalledWith(['dl:items'], { foo: 'bar' })
 
-      c.instance().componentWillReceiveProps({ foo: 'bar' })
+      // eslint-disable-next-line new-cap
+      c.instance().UNSAFE_componentWillReceiveProps({ foo: 'bar' })
     })
   })
 })

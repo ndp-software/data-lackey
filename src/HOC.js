@@ -98,7 +98,7 @@ export function loadData (...resourceCreators) {
         )
       }
 
-      componentWillMount () {
+      componentDidMount () {
         this.setResources(resourceCreators, this.props)
       }
 
@@ -106,7 +106,7 @@ export function loadData (...resourceCreators) {
         this.setResources([], this.props)
       }
 
-      componentWillReceiveProps (nextProps) {
+      UNSAFE_componentWillReceiveProps (nextProps) {
         this.setResources(resourceCreators, nextProps)
       }
 
