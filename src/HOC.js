@@ -5,7 +5,7 @@ import {
   arraysEqual,
   flatMap,
   urisFromUriSpecs,
-} from './util'
+}                          from './util'
 
 /* global Set */
 if (!Set.prototype.difference)
@@ -17,6 +17,36 @@ if (!Set.prototype.difference)
     }
     return difference
   }
+
+// URIs might be functions that need to be called
+function resolveResources (resources, props) {
+  return flatMap(
+    resources
+      .map(rc =>
+             (typeof (rc) === 'function'
+              ? rc(props)
+              : rc),
+      )
+      .filter(r => r),
+    resource => (urisFromUriSpecs(resource).filter(r => r)),
+  )
+}
+
+function nextResourcesPromise (nextResources, prevResources, { load, autoUnload, reloadInterval, dataLackey }) {
+  console.log('nextResourcesPromise', nextResources, ' <== ', prevResources)
+  if (arraysEqual(nextResources, prevResources)) return Promise.resolve() // do nothing
+
+  const comingResources = new Set(nextResources).difference(prevResources),
+        goingResources  = new Set(prevResources).difference(new Set(nextResources))
+
+  if (autoUnload) dataLackey.unload(goingResources)
+
+  const loadOptions = {}
+  if (reloadInterval) loadOptions.reloadInterval = reloadInterval
+  console.log('load', comingResources)
+  return load([...comingResources], loadOptions)
+}
+
 
 /*
  Returns a function that wraps a function and supplies it `loadData` functionality.
@@ -41,87 +71,70 @@ export function loadData (...resourceCreators) {
 
     class WithData extends React.Component {
       constructor (props, context) {
+
         super(props)
 
-        // Allow overriding of the "dataLackey" source.
-        this.dataLackey = this.props.dataLackey || (context && context.dataLackey)
-
-        // eslint-disable-next-line no-console
-        if (!this.dataLackey) console.error('No dataLackey found. Unable to load specified data.')
-
         this.state = {
-          autoUnload:     this.props.autoUnload || options.autoUnload,
-          reloadInterval: this.props.reloadInterval || options.reloadInterval,
-          resources:      [],
+          autoUnload:     props.autoUnload || options.autoUnload,
+          reloadInterval: props.reloadInterval || options.reloadInterval,
+          resources:      [], //resolveResources(resourceCreators, props)
+
+          // Allow overriding of the "dataLackey" source.
+          dataLackey: this.props.dataLackey || (context && context.dataLackey),
         }
+        // eslint-disable-next-line no-console
+        if (!this.state.dataLackey) console.error('No dataLackey found. Unable to load specified data.')
+
+        console.log('construtor: LOADED=', this.state.dataLackey.loaded(this.state.resources))
+        // if (!this.state.dataLackey.loaded(this.state.resources))
+        //   nextResourcesPromise(this.state.resources,
+        //                        [],
+        //                        {
+        //                          load:           this.state.dataLackey.load.bind(this.state.dataLackey),
+        //                          unload:         this.state.autoUnload && this.state.dataLackey.unload.bind(this.state.dataLackey),
+        //                          reloadInterval: this.state.reloadInterval,
+        //                        })
+
       }
 
-      setResources (rcs, props) {
-        const nextResources = this.resolveResources(rcs, props),
-              promise       = this.loadResources(nextResources)
-
-        this.setState({ resources: nextResources }, () => {
-          promise
-            .then(() => this.forceUpdate())
-            .catch(() => this.forceUpdate())
-        })
-      }
-
-
-      loadResources (nextResources) {
-
-        if (arraysEqual(nextResources, this.state.resources)) return Promise.resolve() // do nothing
-
-        const prevResources   = this.state.resources,
-              comingResources = new Set(nextResources).difference(prevResources),
-              goingResources  = new Set(prevResources).difference(new Set(nextResources))
-
-        if (this.state.autoUnload)
-          goingResources.forEach(uri => this.dataLackey.unload(uri))
-
-        const loadOptions = {}
-        if (this.state.reloadInterval) loadOptions.reloadInterval = this.state.reloadInterval
-        return Promise.all([...comingResources].map(uri => this.dataLackey.load(uri, loadOptions)))
-      }
-
-      // URIs might be functions that need to be called
-      resolveResources (creators, props) {
-        return flatMap(
-          creators
-            .map(rc =>
-                   (typeof (rc) === 'function'
-                   ? rc(props)
-                   : rc),
-            )
-            .filter(resource => resource),
-          resource => (urisFromUriSpecs(resource).filter(r=>r)),
-        )
-      }
-
-      componentDidMount () {
-        this.setResources(resourceCreators, this.props)
+      static getDerivedStateFromProps (props, state) {
+        console.log('getDerivedStateFromProps props=', props)
+        const nextResources = resolveResources(resourceCreators, props)
+        const dataLackey       = state.dataLackey
+        nextResourcesPromise(nextResources,
+                             state.resources,
+                             {
+                               load: dataLackey.load,
+                               dataLackey,
+                               autoUnload:     state.autoUnload,
+                               reloadInterval: state.reloadInterval,
+                             })
+        // .then(() => this.forceUpdate())
+        // .catch(() => this.forceUpdate())
+console.log('getDerivedStateFromProps ... returning ', { resources: nextResources })
+        return { resources: nextResources }
       }
 
       componentWillUnmount () {
-        this.setResources([], this.props)
-      }
-
-      UNSAFE_componentWillReceiveProps (nextProps) {
-        this.setResources(resourceCreators, nextProps)
+        console.log('componentWillUnmount')
+        if (this.state.autoUnload) this.state.dataLackey.unload(this.state.resources)
       }
 
       shouldComponentUpdate () {
+        console.log('shouldComponentUpdate=', !this.state.dataLackey.reloading(this.state.resources))
         // We want to suppress rendering while data is being reloaded
-        return !this.dataLackey.reloading(this.state.resources)
+        return !this.state.dataLackey.reloading(this.state.resources)
       }
 
       render () {
-        const isLoading   = this.dataLackey.loading(this.state.resources),
-              isReloading = this.dataLackey.reloading(this.state.resources),
-              isLoaded    = this.dataLackey.loaded(this.state.resources),
-              loadFailed  = this.dataLackey.failed(this.state.resources)
+        console.log('render resources=', this.state.resources)
+        const isLoading   = this.state.dataLackey.loading(this.state.resources),
+              isReloading = this.state.dataLackey.reloading(this.state.resources),
+              isLoaded    = this.state.dataLackey.loaded(this.state.resources),
+              loadFailed  = this.state.dataLackey.failed(this.state.resources)
+        console.log('render', { isLoading, isReloading, isLoaded, loadFailed })
 
-        return <WrappedComponent {...this.props} {...{ isLoading, isReloading, isLoaded, loadFailed }} />
+        /**/return <WrappedComponent {...this.props} {...{ isLoading, isReloading, isLoaded, loadFailed }} />
       }
     }
 

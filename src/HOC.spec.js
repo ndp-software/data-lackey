@@ -2,21 +2,19 @@
 // global window
 import createLackeyWithLoaders from './example.js'
 // eslint-disable-next-line no-unused-vars
-import React from 'react'
+import React                   from 'react'
 import { loadData }            from './HOC'
 import {
   mount,
   shallow,
-}            from 'enzyme'
+}                              from 'enzyme'
 
 
-function sampleComponent (props) {
-  return <div>
-    [{props.isLoading ? '' : 'not '}isLoading]
-    [{props.isLoaded ? '' : 'not '}isLoaded]
-    [{props.loadFailed ? '' : 'not '}loadFailed]
-    Hello, {props.who} {props.message} {props.children}</div>
-}
+const sampleComponent = props => <div>
+  [{props.isLoading ? '' : 'not '}isLoading]
+  [{props.isLoaded ? '' : 'not '}isLoaded]
+  [{props.loadFailed ? '' : 'not '}loadFailed]
+  Hello, {props.who} {props.message} {props.children}</div>
 
 describe('HOC', function () {
 
@@ -53,11 +51,11 @@ describe('HOC', function () {
   // afterEach(() => expect(window.console.error).not.toHaveBeenCalled())
 
   describe('when no data lackey', () => {
-    it('logs a descriptive message', () => {
+    test('logs a descriptive message', () => {
       jest.spyOn(window.console, 'error').mockImplementation(() => null)
 
       try {
-        shallow(<WrappedComponent who='dawg' />)
+        shallow(<WrappedComponent who='world' />)
       } catch (e) {
         expect(e).toBeInstanceOf(TypeError)
       }
@@ -66,32 +64,21 @@ describe('HOC', function () {
   })
 
   describe('with static resource', () => {
-    it('renders immediately if data is already loaded', async () => {
-      await lackey.load('dl:items')
-      expect(lackey.loaded('dl:items')).toBe(true)
 
-      const view = mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
+    afterEach(async () => await lackey.load('dl:items'))
 
-      expect(view.text()).toContain('Hello, dawg')
-      expect(view.text()).toContain('items loaded')
-      expect(view.text()).toContain('[not isLoading]')
-      expect(view.text()).toContain('[isLoaded]')
-      expect(view.text()).toContain('[not loadFailed]')
-    })
+    test('loads when component is mounted', async () => {
+      const view = mount(<WrappedComponent who='world' dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
-    it('loads when component is mounted', async () => {
-      const view = mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
-
-      expect(view.text()).toContain('Hello, dawg')
-      expect(lackey.loading('dl:items')).toBe(true)
+      expect(view.text()).toContain('Hello, world')
       expect(view.text()).toContain('[isLoading]')
       expect(view.text()).toContain('[not isLoaded]')
       expect(view.text()).toContain('[not loadFailed]')
-      await lackey.load('dl:items')
+      expect(lackey.loading('dl:items')).toBe(true)
     })
 
-    it('dispatches values on resolution', async () => {
-      mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
+    test('dispatches values on resolution', async () => {
+      mount(<WrappedComponent who='world' dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
       expect(recordLoad).not.toHaveBeenCalled()
 
@@ -100,17 +87,36 @@ describe('HOC', function () {
       expect(recordLoad).toHaveBeenCalledWith('items loaded')
     })
 
+    describe('data already loaded', () => {
+      beforeEach(async () => await lackey.load('dl:items'))
+
+      test('renders immediately', async () => {
+        expect(lackey.loaded('dl:items')).toBe(true)
+        expect(lackey.reloading('dl:items')).toBe(false)
+        expect(lackey.loading('dl:items')).toBe(false)
+
+        const view = mount(<WrappedComponent who='world' dataLackey={lackey}>{propTracker}</WrappedComponent>)
+
+        expect(view.text()).toContain('Hello, world')
+        expect(view.text()).toContain('items loaded')
+        expect(view.text()).toContain('[not isLoading]')
+        expect(view.text()).toContain('[isLoaded]')
+        expect(view.text()).toContain('[not loadFailed]')
+      })
+
+    })
+
   })
 
   describe('when loading fails', () => {
-    it('logs', async () => {
+    test('logs', async () => {
       const uri = 'FAILURE'
       lackey.rule(uri, { loader: () => Promise.reject('reject!') })
-      WrappedComponent = loadData(uri)(() => <div />)
+      // WrappedComponent = loadData(uri)(() => <div />)
 
-      mount(<WrappedComponent who='dawg' dataLackey={lackey} />)
+      mount(<WrappedComponent who='world' dataLackey={lackey} />)
 
-      await new Promise(resolve => window.setTimeout(resolve, 10)) //lackey.load(uri)
+      await new Promise(resolve => window.setTimeout(resolve, 1)) //lackey.load(uri)
 
       expect(options.console.error).toHaveBeenCalledWith('failed FAILURE Error=reject!')
     })
@@ -122,10 +128,10 @@ describe('HOC', function () {
       WrappedComponent = loadData('dl:item/1', 'dl:items')(sampleComponent)
     })
 
-    it('loads when component is mounted', async done => {
-      const view = mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
+    test('loads when component is mounted', async done => {
+      const view = mount(<WrappedComponent who='world' dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
-      expect(view.text()).toContain('Hello, dawg')
+      expect(view.text()).toContain('Hello, world')
       expect(view.text()).toContain('[isLoading]')
       expect(view.text()).toContain('[not isLoaded]')
       expect(view.text()).toContain('[not loadFailed]')
@@ -148,12 +154,12 @@ describe('HOC', function () {
       WrappedComponent = loadData(() => 'dl:item/1/details')(sampleComponent)
     })
 
-    it('loads resource passed as property', async done => {
+    test('loads resource passed as property', async done => {
       const view = mount(<WrappedComponent
-        who='dawg'
+        who='world'
         dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
-      expect(view.text()).toContain('Hello, dawg')
+      expect(view.text()).toContain('Hello, world')
       expect(view.text()).toContain('[isLoading]')
       expect(view.text()).toContain('[not isLoaded]')
       expect(view.text()).toContain('[not loadFailed]')
@@ -182,7 +188,7 @@ describe('HOC', function () {
 
   describe('resources changing', () => {
 
-    it('will load new resource', () => {
+    test('will load new resource', () => {
       jest.spyOn(lackey, 'load')
       const c = shallow(<WrappedComponent dataLackey={lackey} />)
       expect(lackey.load).toBeCalledWith('dl:items', {})
@@ -193,7 +199,7 @@ describe('HOC', function () {
       expect(lackey.load).toBeCalledWith('dl:item/1', {})
     })
 
-    it('will unload old resource', async () => {
+    test('will unload old resource', async () => {
       const c = shallow(<WrappedComponent dataLackey={lackey} />)
       await c.instance().setResources(['dl:item/1'])
       jest.spyOn(lackey, 'unload')
@@ -203,7 +209,7 @@ describe('HOC', function () {
       expect(lackey.unload).toBeCalledWith('dl:item/1')
     })
 
-    it('will load with reloadInterval if `reloadInterval` specified as a prop', async () => {
+    test('will load with reloadInterval if `reloadInterval` specified as a prop', async () => {
       const c = shallow(<WrappedComponent dataLackey={lackey} reloadInterval={70} />)
       jest.spyOn(lackey, 'load')
 
@@ -214,7 +220,7 @@ describe('HOC', function () {
   })
 
   describe('componentWillUnmount', () => {
-    it('will unload resources', () => {
+    test('will unload resources', () => {
       const c = shallow(<WrappedComponent dataLackey={lackey} />)
 
       jest.spyOn(c.instance(), 'setResources')
@@ -225,7 +231,7 @@ describe('HOC', function () {
   })
 
   describe('componentWillReceiveProps', () => {
-    it('will unload resources', () => {
+    test('will unload resources', () => {
       const c = shallow(<WrappedComponent dataLackey={lackey} />)
       jest.spyOn(c.instance(), 'setResources')
 
