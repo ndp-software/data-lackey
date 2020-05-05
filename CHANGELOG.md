@@ -1,4 +1,4 @@
-# 1.2.0
+# 1.3.0
 * move ownership from Verba to NDP Software
 
 # 1.1.0
