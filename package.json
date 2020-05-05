@@ -13,7 +13,7 @@
     "prepublish": "yarn build",
     "release-it": "GITHUB_TOKEN=$RELEASE_IT_GITHUB_TOKEN ./node_modules/.bin/release-it"
   },
-  "repository": "github:Verba/data-lackey.git",
+  "repository": "github:ndp-software/data-lackey.git",
   "keywords": [
     "fetch",
     "REST",
@@ -29,9 +29,9 @@
     "node": ">=8"
   },
   "bugs": {
-    "url": "https://github.com/Verba/data-lackey/issues"
+    "url": "https://github.com/ndp-software/data-lackey/issues"
   },
-  "homepage": "https://github.com/Verba/data-lackey#readme",
+  "homepage": "https://github.com/ndp-software/data-lackey#readme",
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",

@@ -21,5 +21,5 @@ https://github.com/thoughtbot/guides/blob/master/code-review/README.md#having-yo
 
 | repo | master status |
 | ------ | ------- |
-| data-lackey |  [![Current master status](https://circleci.com/gh/Verba/data-lackey.svg?style=svg&circle-token=19a620df033696e23e13d388ff331d7c1f657273)](https://circleci.com/gh/Verba/connect-backend) |
+| data-lackey |  [![Current master status](https://circleci.com/gh/ndp-software/data-lackey.svg?style=svg&circle-token=19a620df033696e23e13d388ff331d7c1f657273)](https://circleci.com/gh/ndp-software/data-lackey) |
 

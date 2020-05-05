@@ -29,7 +29,7 @@ It layers on top of this :
 * reload data at periodic intervals (poll)
 * expire data / support a ttl (time to live) for individual pieces of data
 
- [![CircleCI](https://circleci.com/gh/Verba/data-lackey/tree/master.svg?style=svg&circle-token=e5e3ede09f04662995e99094b75e6a0c84914c1a)](https://circleci.com/gh/Verba/data-lackey/tree/master) [![Maintainability](https://api.codeclimate.com/v1/badges/562327499c13db5defe0/maintainability)](https://codeclimate.com/github/Verba/data-lackey/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/562327499c13db5defe0/test_coverage)](https://codeclimate.com/github/Verba/data-lackey/test_coverage)
+ [![CircleCI](https://circleci.com/gh/ndp-software/data-lackey/tree/master.svg?style=svg&circle-token=e5e3ede09f04662995e99094b75e6a0c84914c1a)](https://circleci.com/gh/ndp-software/data-lackey/tree/master) [![Maintainability](https://api.codeclimate.com/v1/badges/562327499c13db5defe0/maintainability)](https://codeclimate.com/github/ndp-software/data-lackey/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/562327499c13db5defe0/test_coverage)](https://codeclimate.com/github/ndp-software/data-lackey/test_coverage)
 
 ## Installation & Basic Usage
 
