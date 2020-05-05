@@ -1,3 +1,6 @@
+# 1.2.0
+* move ownership from Verba to NDP Software
+
 # 1.1.0
 
 * support object-based URI, with `resource` and `params` keys
