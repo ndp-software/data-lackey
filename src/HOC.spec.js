@@ -1,21 +1,33 @@
 /* eslint-env jest */
-// global window
-import createLackeyWithLoaders from './example.js'
+/* globals process */
 // eslint-disable-next-line no-unused-vars
-import React from 'react'
-import { loadData }            from './HOC'
+import React                   from 'react'
+import createLackeyWithLoaders from './example.js'
+
+import {
+  loadData,
+} from './HOC'
 import {
   mount,
   shallow,
-}            from 'enzyme'
+} from 'enzyme'
 
 
 function sampleComponent (props) {
   return <div>
     [{props.isLoading ? '' : 'not '}isLoading]
+    [{props.isReloading ? '' : 'not '}isReloading]
     [{props.isLoaded ? '' : 'not '}isLoaded]
     [{props.loadFailed ? '' : 'not '}loadFailed]
     Hello, {props.who} {props.message} {props.children}</div>
+}
+
+function expectIsLoading (view) {
+  expect(view.text()).toContain('Hello, dawg')
+  expect(view.text()).toContain('[isLoading]')
+  expect(view.text()).toContain('[not isReloading]')
+  expect(view.text()).toContain('[not isLoaded]')
+  expect(view.text()).toContain('[not loadFailed]')
 }
 
 describe('HOC', function () {
@@ -57,7 +69,7 @@ describe('HOC', function () {
       jest.spyOn(window.console, 'error').mockImplementation(() => null)
 
       try {
-        shallow(<WrappedComponent who='dawg' />)
+        shallow(<WrappedComponent who='dawg'/>)
       } catch (e) {
         expect(e).toBeInstanceOf(TypeError)
       }
@@ -82,11 +94,8 @@ describe('HOC', function () {
     it('loads when component is mounted', async () => {
       const view = mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
-      expect(view.text()).toContain('Hello, dawg')
       expect(lackey.loading('dl:items')).toBe(true)
-      expect(view.text()).toContain('[isLoading]')
-      expect(view.text()).toContain('[not isLoaded]')
-      expect(view.text()).toContain('[not loadFailed]')
+      expectIsLoading(view)
       await lackey.load('dl:items')
     })
 
@@ -106,9 +115,9 @@ describe('HOC', function () {
     it('logs', async () => {
       const uri = 'FAILURE'
       lackey.rule(uri, { loader: () => Promise.reject('reject!') })
-      WrappedComponent = loadData(uri)(() => <div />)
+      WrappedComponent = loadData(uri)(() => <div/>)
 
-      mount(<WrappedComponent who='dawg' dataLackey={lackey} />)
+      mount(<WrappedComponent who='dawg' dataLackey={lackey}/>)
 
       await new Promise(resolve => window.setTimeout(resolve, 10)) //lackey.load(uri)
 
@@ -125,11 +134,7 @@ describe('HOC', function () {
     it('loads when component is mounted', async done => {
       const view = mount(<WrappedComponent who='dawg' dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
-      expect(view.text()).toContain('Hello, dawg')
-      expect(view.text()).toContain('[isLoading]')
-      expect(view.text()).toContain('[not isLoaded]')
-      expect(view.text()).toContain('[not loadFailed]')
-
+      expectIsLoading(view)
       await lackey.load('dl:items')
 
       process.nextTick(async () => {
@@ -153,29 +158,27 @@ describe('HOC', function () {
         who='dawg'
         dataLackey={lackey}>{propTracker}</WrappedComponent>)
 
-      expect(view.text()).toContain('Hello, dawg')
-      expect(view.text()).toContain('[isLoading]')
-      expect(view.text()).toContain('[not isLoaded]')
-      expect(view.text()).toContain('[not loadFailed]')
-
+      expectIsLoading(view)
       await lackey.load('dl:items')
       expect(lackey.loading('dl:item/1')).toBe(true)
 
       await lackey.load('dl:item/1')
-
-      expect(view.text()).toContain('[isLoading]')
-
+      expectIsLoading(view)
       expect(lackey.loading('dl:item/1/details')).toBe(true)
-      await lackey.load('dl:item/1/details') // resolution will trigger render
-      expect(lackey.loading('dl:item/1/details')).toBe(false)
-      expect(view.text()).toContain('[not isLoading]')
-      expect(view.text()).toContain('[isLoaded]')
 
-      /* globals process */
-      process.nextTick(() => {
+      // resolution will trigger render
+      await lackey.load('dl:item/1/details')
+
+      expect(lackey.loading('dl:item/1/details')).toBe(false)
+      expect(lackey.loaded('dl:item/1/details')).toBe(true)
+
+      view.update()
+
+      process.nextTick(async () => {
+        expect(view.render().toString()).toContain('[not isLoading]')
+        expect(view.render().toString()).toContain('[isLoaded]')
         done()
       })
-
     })
 
   })
@@ -184,7 +187,7 @@ describe('HOC', function () {
 
     it('will load new resource', () => {
       jest.spyOn(lackey, 'load')
-      const c = shallow(<WrappedComponent dataLackey={lackey} />)
+      const c = shallow(<WrappedComponent dataLackey={lackey}/>)
       expect(lackey.load).toBeCalledWith('dl:items', {})
 
       c.instance().setResources(['dl:item/1'])
@@ -194,7 +197,7 @@ describe('HOC', function () {
     })
 
     it('will unload old resource', async () => {
-      const c = shallow(<WrappedComponent dataLackey={lackey} />)
+      const c = shallow(<WrappedComponent dataLackey={lackey}/>)
       await c.instance().setResources(['dl:item/1'])
       jest.spyOn(lackey, 'unload')
 
@@ -204,7 +207,7 @@ describe('HOC', function () {
     })
 
     it('will load with reloadInterval if `reloadInterval` specified as a prop', async () => {
-      const c = shallow(<WrappedComponent dataLackey={lackey} reloadInterval={70} />)
+      const c = shallow(<WrappedComponent dataLackey={lackey} reloadInterval={70}/>)
       jest.spyOn(lackey, 'load')
 
       await c.instance().setResources(['dl:item/1'])
@@ -215,7 +218,7 @@ describe('HOC', function () {
 
   describe('componentWillUnmount', () => {
     it('will unload resources', () => {
-      const c = shallow(<WrappedComponent dataLackey={lackey} />)
+      const c = shallow(<WrappedComponent dataLackey={lackey}/>)
 
       jest.spyOn(c.instance(), 'setResources')
       c.instance().componentWillUnmount()
@@ -226,7 +229,7 @@ describe('HOC', function () {
 
   describe('componentWillReceiveProps', () => {
     it('will unload resources', () => {
-      const c = shallow(<WrappedComponent dataLackey={lackey} />)
+      const c = shallow(<WrappedComponent dataLackey={lackey}/>)
       jest.spyOn(c.instance(), 'setResources')
 
       // eslint-disable-next-line new-cap

@@ -22,7 +22,7 @@ export class DataLackey {
     this.RULES         = new Rules(this.console)
     this.JOBS          = new Jobs(this.console)
     this.QUEUE         = []
-    this.POLL_INTERVAL = 1000
+    this.POLL_INTERVAL = options.pollInterval || 1000
 
     this.console.log(`DataLackey ${version} starting up`)
     window.lackey = this

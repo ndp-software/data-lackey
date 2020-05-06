@@ -14,6 +14,7 @@ describe('DataLackey', function () {
 
   beforeEach(() => {
     mockLog = jest.fn()
+    jest.useFakeTimers()
     subject = new DataLackey({ console: { log: mockLog } })
   })
 
@@ -39,7 +40,7 @@ describe('DataLackey', function () {
 
     describe('load', () => {
       beforeEach(() => {
-        expect(subject.job(URI)).toBe()
+        expect(subject.job(URI)).toBe(undefined)
         resultPromise = subject.load(URI)
       })
 
@@ -458,31 +459,28 @@ describe('DataLackey', function () {
 
       const a = subject.load('A')
 
+      expect(loaderA).not.toHaveBeenCalled()
+      expect(loaderB).not.toHaveBeenCalled()
       expect(subject.loading('A')).toEqual(true)
       expect(subject.loading('B')).toEqual(true)
       expect(subject.loaded('A')).toEqual(false)
       expect(subject.loaded('B')).toEqual(false)
 
-      expect(loaderA).not.toHaveBeenCalled()
-      expect(loaderB).not.toHaveBeenCalled()
-
       resolvePromiseANow('promiseA')
       resolvePromiseBNow('promiseB')
-      await promiseA
 
       expect(loaderA).not.toHaveBeenCalled()
-      expect(loaderB).toHaveBeenCalled()
-      await promiseB
+      expect(loaderB).not.toHaveBeenCalled()
+      jest.advanceTimersByTime(1000)
 
-      expect(loaderA).not.toHaveBeenCalled()
-      expect(loaderB).toHaveBeenCalled()
       await a
-      expect(loaderA).toHaveBeenCalled()
-      expect(loaderB).toHaveBeenCalled()
 
       expect(loaderA).toHaveBeenCalled()
       expect(loaderB).toHaveBeenCalled()
-
+      expect(subject.loading('A')).toEqual(false)
+      expect(subject.loading('B')).toEqual(false)
+      expect(subject.loaded('A')).toEqual(true)
+      expect(subject.loaded('B')).toEqual(true)
     })
   })
 
@@ -566,32 +564,33 @@ describe('DataLackey', function () {
     })
 
     it('keeps polling when the promise resolves', async () => {
-      jest.useFakeTimers()
       subject.pollNow = jest.fn()
-
       const promise1 = Promise.resolve()
+
       subject.enqueueNextPollNow(promise1)
 
       await promise1
       expect(subject.pollNow).not.toHaveBeenCalled()
-      jest.runOnlyPendingTimers()
+      jest.advanceTimersByTime(2000)
 
       expect(subject.pollNow).toHaveBeenCalled()
     })
 
     it('keeps polling when the promise rejects', async () => {
       subject.pollNow = jest.fn()
-
       promise = Promise.reject('fail')
+
       subject.enqueueNextPollNow(promise)
 
+      jest.advanceTimersByTime(2000)
       try {
         await promise
+        // eslint-disable-next-line no-undef
+        unreachable()
       } catch (e) {
         expect(e).toEqual('fail')
         expect(subject.pollNow).toHaveBeenCalled()
       }
-
     })
 
 

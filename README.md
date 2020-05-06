@@ -29,7 +29,7 @@ It layers on top of this :
 * reload data at periodic intervals (poll)
 * expire data / support a ttl (time to live) for individual pieces of data
 
- [![CircleCI](https://circleci.com/gh/ndp-software/data-lackey/tree/master.svg?style=svg&circle-token=e5e3ede09f04662995e99094b75e6a0c84914c1a)](https://circleci.com/gh/ndp-software/data-lackey/tree/master) [![Maintainability](https://api.codeclimate.com/v1/badges/562327499c13db5defe0/maintainability)](https://codeclimate.com/github/ndp-software/data-lackey/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/562327499c13db5defe0/test_coverage)](https://codeclimate.com/github/ndp-software/data-lackey/test_coverage)
+ [![CircleCI](https://circleci.com/gh/ndp-software/data-lackey/tree/master.svg?style=svg)](https://circleci.com/gh/ndp-software/data-lackey/tree/master)
 
 ## Installation & Basic Usage
 
@@ -91,6 +91,14 @@ Usage within React is 100% configuration driven and [is outlined here.](./docs/r
 Data Lackey itself is well tested. One of the benefits of Data Lackey is that it separates the loading
 of data from the component itself. The loaders can be unit tested (they are functional in nature),
 and should simplify your component tests.
+
+# Development
+
+To be written.
+
+## Releasing
+
+Use `release-it -i <patch>`.
 
 # API
 

@@ -1,4 +1,5 @@
 module.exports = {
+  env: { 'browser': true },
   extends:         [
     'plugin:promise/recommended',
     'eslint:recommended',
