@@ -9,11 +9,9 @@
       }
     ],
     "@babel/preset-react"
-    //    "module:@babel/plugin-transform-regenerator"
   ],
   "plugins": [
     "@babel/transform-runtime"
-    //    "@babel/plugin-syntax-object-rest-spread"
   ]
 }
 

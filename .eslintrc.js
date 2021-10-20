@@ -4,7 +4,7 @@ module.exports = {
     'plugin:promise/recommended',
     'eslint:recommended',
   ],
-  parser:          'babel-eslint',
+  parser:          '@babel/eslint-parser',
   'parserOptions': {
     'ecmaVersion':  6,
     'sourceType':   'module',

@@ -39,7 +39,7 @@
     "@babel/preset-env": "*",
     "@babel/preset-react": "*",
     "@babel/runtime": "*",
-    "babel-eslint": "*",
+    "@babel/eslint-parser": "*",
     "babel-plugin-module-resolver": "*",
     "enzyme": "*",
     "enzyme-adapter-react-16": "*",
